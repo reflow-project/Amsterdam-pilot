@@ -1,0 +1,55 @@
+## Experiment 
+This is an experiment syncing the actual swapshop inventory levels with an economic resource in reflow os.
+
+## Assumptions regarding the Reflow OS instance
+
+A local instance of reflow os is running locally on port 4009
+The reflow os is seeded with at least the following:
+- A user representing the swap shop (register and validate)
+- A unit that is used for the inventory level (see Api Tour, 'create Unit')
+- An economic resource that represents the swap shop (see Api Tour, 'create Economic resource through Event')
+For the experiment these were made by hand with the graphiql interface
+
+A valid .env file in the experiments directory contains the credentials to log in with the user representing the swap shop
+
+## Assumptions regarding the Lightspeed client
+A  valid .env file in the experiments directory contains the credentials to refresh the token of the swap shop employee user
+
+## To run
+$ ruby reflow_adapter.rb 
+
+It will connect to lightspeed, download and process the entire inventory, reduce it to a single total number, and sync this total number with the 'onhand' value of the economic resource that was created in reflow os.
+You should see something like the output below..
+
+```
+.................................................................
+total: 3215
+
+number of unique id's in db: 5588
+total number of unique items in stock: 2183
+total number of id's with more than one piece in stock: 69
+total number of pieces in stock: 3215
+
+top 10 2021-07-15T16:24:41+02:00
+
+100 (Vilten opbergtasje #6808)
+50 (200 #1272)
+22 (Vilten opbergtasje #5763)
+16 (Vilten shopper #5764)
+2 (Together, skirt, 38, beige, 10/21 #139)
+2 (Flower pattern skirt, black #14)
+2 (Bernardi, pantalon, 48, black fluweel, 10/21 #142)
+2 (Bernardi, pantalon, 48, black fluweel, 10/21 #143)
+2 (Onbekend, skirt, one size, Ibiza, 10/21 #39)
+2 (Only, pantalon, 34, grijs geplooid, 20/21 #145)
+
+new total: 3215
+2120f04a-1489-4f70-9e76-20714fa6e707
+taco+swapshop@waag.org
+previous total: 1000.0
+
+raise by 2215.0
+01FAG7S65DDVG7NJ1X6NRMWW0Q
+
+updated total: 3215.0
+```
