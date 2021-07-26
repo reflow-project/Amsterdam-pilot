@@ -3,7 +3,9 @@ This is an experiment syncing the actual swapshop inventory levels with an econo
 
 ## Assumptions regarding the Reflow OS instance
 
-A local instance of reflow os is running locally on port 4009
+A local instance of reflow os is running locally on port 4009 
+(```$ make dev``` in zenpub directory)
+
 The reflow os is seeded with at least the following:
 - A user representing the swap shop (register and validate)
 - A unit that is used for the inventory level (see Api Tour, 'create Unit')
