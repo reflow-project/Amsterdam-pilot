@@ -1,0 +1,8 @@
+digraph ValueFlowElements {
+    A [shape=circle, style="filled", fillcolor="#43e272", color="#4cb46c" fontname="Helvetica" label="Agent"];
+    E [shape=square, style="rounded,filled", fillcolor="#e2e2e2", color="#b5b5b5" fontname="Helvetica" label="Event"];
+    R [shape=square, style="filled", fillcolor="#004576", fontcolor="white", color="#697d8a" fontname="Helvetica" label="Resource"];
+
+    A -> E [dir=none, label= " role " , fontname="Helvetica", ]
+        E -> R
+}

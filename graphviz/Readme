@@ -1,0 +1,5 @@
+ruby dsl for generating value flow dot files
+for an example see zorgschorten.rb
+
+execute with 
+$ ruby zorgschorten.rb

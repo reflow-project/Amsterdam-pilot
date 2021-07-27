@@ -1,0 +1,41 @@
+digraph Zorgschorten {
+
+rankdir="LR"//
+
+//Agents
+A1 [label="Hospital" fixedsize=true, width=1.25, shape=circle, style="filled", fillcolor="#43e272", color="#4cb46c" fontname="Helvetica"];
+A2 [label="Laundry\nService" fixedsize=true, width=1.25, shape=circle, style="filled", fillcolor="#43e272", color="#4cb46c" fontname="Helvetica"];
+A3 [label="Textile\nService\nCompany" fixedsize=true, width= 1.25, shape=circle, style="filled", fillcolor="#43e272", color="#4cb46c" fontname="Helvetica"];
+
+//Resource states
+R1 [label="Gown Lot\n(dirty)", fixedsize=true, width=1.1 shape=square, style="filled", fillcolor="#004576", fontcolor="white", color="#697d8a" fontname="Helvetica" ];
+R2 [label="Gown Lot\n(dirty)", fixedsize=true, width=1.1 shape=square, style="filled", fillcolor="#004576", fontcolor="white", color="#697d8a" fontname="Helvetica" ];
+R3 [label="Gown Lot\n(clean)", fixedsize=true, width=1.1 shape=square, style="filled", fillcolor="#004576", fontcolor="white", color="#697d8a" fontname="Helvetica" ];
+R4 [label="Gown Lot\n(clean)", fixedsize=true, width=1.1 shape=square, style="filled", fillcolor="#004576", fontcolor="white", color="#697d8a" fontname="Helvetica" ];
+R5 [label="Gown Vol\n(inv up)", fixedsize=true, width=1.1 shape=square, style="filled", fillcolor="#004576", fontcolor="white", color="#697d8a" fontname="Helvetica" ];
+R6 [label="Gown Vol\n(inv down)", fixedsize=true, width=1.1 shape=square, style="filled", fillcolor="#004576", fontcolor="white", color="#697d8a" fontname="Helvetica" ];
+
+//Events
+E1 [label="Transfer\n(pickup)", fixedsize=true, width = 1.1, shape=square, style="rounded,filled", fillcolor="#e2e2e2", color="#b5b5b5" fontname="Helvetica"];
+E2 [label="Work\n(laundry)", fixedsize=true, width = 1.1, shape=square, style="rounded,filled", fillcolor="#e2e2e2", color="#b5b5b5" fontname="Helvetica"];
+E3 [label="Transfer", fixedsize=true, width = 1.1, shape=square, style="rounded,filled", fillcolor="#e2e2e2", color="#b5b5b5" fontname="Helvetica"];
+E4 [label="Modify\n(QI)", fixedsize=true, width = 1.1, shape=square, style="rounded,filled", fillcolor="#e2e2e2", color="#b5b5b5" fontname="Helvetica"];
+E5 [label="Transfer\n(Delivery)", fixedsize=true, width = 1.1, shape=square, style="rounded,filled", fillcolor="#e2e2e2", color="#b5b5b5" fontname="Helvetica"];
+E6 [label="Use\n(Wear)", fixedsize=true, width = 1.1, shape=square, style="rounded,filled", fillcolor="#e2e2e2", color="#b5b5b5" fontname="Helvetica"];
+
+
+//Roles
+E1 -> A1 [dir=none, label= " provider ", fontname="Helvetica"]
+E1 -> A2 [dir=none, label= " receiver ", fontname="Helvetica"]
+E2 -> A2 [dir=none, label= " performer " , fontname="Helvetica"]
+E3 -> A2 [dir=none, label= " provider " , fontname="Helvetica"]
+E3 -> A3 [dir=none, label= " receiver " , fontname="Helvetica"]
+E4 -> A3 [dir=none, label= " inspector " , fontname="Helvetica"]
+E5 -> A3 [dir=none, label= " provider " , fontname="Helvetica"]
+E5 -> A1 [dir=none, label= " receiver " , fontname="Helvetica"]
+E6 -> A1 [dir=none, label= " user " , fontname="Helvetica"]
+
+//Value flow
+R1 -> E1 -> R2 -> E2 -> R3 -> E3 -> R4 -> E4 -> R5 -> E5 -> R6 -> E6 -> R1
+
+}
