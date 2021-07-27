@@ -1,5 +1,13 @@
-ruby dsl for generating value flow dot files
-for an example see zorgschorten.rb
+## What is this?
 
+a ruby dsl for generating value flow dot files, created for the Amsterdam pilot in the Reflow project.
+
+## How does it work?
+
+for an example see zorgschorten.rb
 execute with 
 $ ruby zorgschorten.rb
+
+this will output graphviz commands to stdout
+you can paste them online in "https://dreampuf.github.io/GraphvizOnline" to generate a graph
+(or just use graphviz if you have it installed)
