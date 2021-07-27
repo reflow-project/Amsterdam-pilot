@@ -1,6 +1,6 @@
 ## What is this?
 
-a ruby dsl for generating value flow dot files, created for the Amsterdam pilot in the Reflow project.
+a ruby dsl for generating graphviz diagrams of value flows for the Amsterdam pilot in the Reflow project.
 
 ## How do i use it?
 
