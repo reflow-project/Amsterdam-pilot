@@ -2,12 +2,16 @@
 
 a ruby dsl for generating value flow dot files, created for the Amsterdam pilot in the Reflow project.
 
-## How does it work?
+## How do i use it?
 
 for an example see zorgschorten.rb
-execute with 
-$ ruby zorgschorten.rb
 
-this will output graphviz commands to stdout
-you can paste them online in "https://dreampuf.github.io/GraphvizOnline" to generate a graph
-(or just use graphviz if you have it installed)
+## How do i generate a graph?
+Make sure that you have graphviz installed, and pipe the output of the script to 'dot':
+For example
+
+```$ ruby zorgschorten.rb | dot -Tpng > output.png```
+
+Will produce the following image:
+
+![output](output.png)
