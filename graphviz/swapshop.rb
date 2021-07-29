@@ -8,7 +8,6 @@ graph("Swapshop"){
   agent :a_ti, "Textile Industry"
   agent :a_repairshop, "Repair Shop"
 
-  resource :r_discarded, "Discarded Clothing (Vol)"
   resource :r_wearable1, "Wearable Clothing (Inv)" 
   resource :r_unwearable, "Depreciated Clothing (Vol)"
   resource :r_unsorted_swapshop, "Unsorted material (Vol)"
@@ -25,8 +24,15 @@ graph("Swapshop"){
   event :e_sort_swapshop, "Consume / Produce (sorting)"
   role :e_swap_in, :a_swapshop, "Receiver"
   role :e_swap_in, :a_consumer, "Provider"
-  
-  flow [:r_discarded, :e_swap_in, :r_unsorted_swapshop, :e_sort_swapshop] 
+  flow [:r_wearable2, :e_swap_in, :r_unsorted_swapshop, :e_sort_swapshop] 
+ 
+  # the citizen brings in items to swap  
+  # event :e_cons_discard, "Transfer (discard)"
+  # role :e_cons_discard, :a_consumer, "Provider"
+  # role :e_cons_discard, :a_swapshop, "Receiver"
+  # flow [:r_wearable2, :e_cons_discard, :r_discarded]
+
+ 
   # swapshop sorts incoming stuff
   role :e_sort_swapshop, :a_swapshop, "Operator"
  
@@ -59,13 +65,9 @@ graph("Swapshop"){
 
   # the citizen discards to recycle bin
   event :e_cons_recycle, "Transfer (recycle)"
-  role :e_cons_discard, :a_consumer, "Provider"
-  role :e_cons_discard, :a_sorter, "Receiver"
+  role :e_cons_recycle, :a_consumer, "Provider"
+  role :e_cons_recycle, :a_sorter, "Receiver"
   flow [:r_wearable2, :e_cons_recycle, :r_unsorted_sorter] 
-
-  # the citizen brings in items to swap show (back to r_discarded) 
-  event :e_cons_discard, "Transfer (discard)"
-  flow [:r_wearable2, :e_cons_discard, :r_discarded]
 
   # swapshop sends unwearable stuff to sorting company
   event :e_depreciate, "Transfer (depreciate)"
