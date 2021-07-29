@@ -89,10 +89,8 @@ graph("Swapshop"){
   event :e_sorter_sell, "Transfer (sell)"
   role :e_sorter_sell, :a_sorter, "Provider"
   role :e_sorter_sell, :a_unraveler, "Receiver"
-  role :e_recycle, :a_sorter, "Operator"
+  role :e_recycle, :a_unraveler, "Operator"
   role :e_unraveler_sell, :a_unraveler, "Provider"
   role :e_unraveler_sell, :a_ti, "Receiver"
   flow [:e_sort_sc, :r_recyclable, :e_sorter_sell, :r_recyclable2, :e_recycle, :r_unraveled, :e_unraveler_sell ] 
-  
-
 }
