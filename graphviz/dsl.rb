@@ -15,7 +15,7 @@ def event(id, label)
 end
 
 def role(event, agent, role)
-  puts "#{event} -> #{agent} [dir=none, label= \" #{role} \", fontname=\"Helvetica\"]" 
+  puts "#{event} -> #{agent} [dir=none, style=\"dotted\" label= \" #{role} \", fontname=\"Helvetica\"]" 
 end
 
 def flow(ids)
