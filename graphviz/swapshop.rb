@@ -9,10 +9,10 @@ graph("Swapshop"){
   agent :a_repairshop, "Repair Shop"
 
   resource :r_discarded, "Discarded Clothing (Vol)"
-  resource :r_unsorted, "Unsorted Clothing (Vol)"
   resource :r_wearable1, "Wearable Clothing (Inv)" 
   resource :r_unwearable, "Depreciated Clothing (Vol)"
-  resource :r_unsorted, "Unsorted material (Vol)"
+  resource :r_unsorted_swapshop, "Unsorted material (Vol)"
+  resource :r_unsorted_sorter, "Unsorted material (Vol)"
   resource :r_waste1, "Waste (Vol)"
   resource :r_waste2, "Waste (Vol)"
   resource :r_recyclable, "Recycleable Material (Vol)"
@@ -26,7 +26,7 @@ graph("Swapshop"){
   role :e_swap_in, :a_swapshop, "Receiver"
   role :e_swap_in, :a_consumer, "Provider"
   
-  flow [:r_discarded, :e_swap_in, :r_unsorted, :e_sort_swapshop] 
+  flow [:r_discarded, :e_swap_in, :r_unsorted_swapshop, :e_sort_swapshop] 
   # swapshop sorts incoming stuff
   role :e_sort_swapshop, :a_swapshop, "Operator"
  
@@ -61,7 +61,7 @@ graph("Swapshop"){
   event :e_cons_recycle, "Transfer (recycle)"
   role :e_cons_discard, :a_consumer, "Provider"
   role :e_cons_discard, :a_sorter, "Receiver"
-  flow [:r_wearable2, :e_cons_recycle, :r_unsorted] 
+  flow [:r_wearable2, :e_cons_recycle, :r_unsorted_sorter] 
 
   # the citizen brings in items to swap show (back to r_discarded) 
   event :e_cons_discard, "Transfer (discard)"
@@ -71,7 +71,7 @@ graph("Swapshop"){
   event :e_depreciate, "Transfer (depreciate)"
   role :e_depreciate, :a_swapshop, "Provider"
   role :e_depreciate, :a_sorter, "Receiver"
-  flow [:e_sort_swapshop, :r_unwearable, :e_depreciate, :r_unsorted, :e_sort_sc] 
+  flow [:e_sort_swapshop, :r_unwearable, :e_depreciate, :r_unsorted_sorter, :e_sort_sc] 
   
   #sorting company deems some stuff is waste, which goes on to the incinerator
   event :e_incinerate, "Consume (incinerate)"
