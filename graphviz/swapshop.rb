@@ -26,13 +26,6 @@ graph("Swapshop"){
   role :e_swap_in, :a_consumer, "Provider"
   flow [:r_wearable2, :e_swap_in, :r_unsorted_swapshop, :e_sort_swapshop] 
  
-  # the citizen brings in items to swap  
-  # event :e_cons_discard, "Transfer (discard)"
-  # role :e_cons_discard, :a_consumer, "Provider"
-  # role :e_cons_discard, :a_swapshop, "Receiver"
-  # flow [:r_wearable2, :e_cons_discard, :r_discarded]
-
- 
   # swapshop sorts incoming stuff
   role :e_sort_swapshop, :a_swapshop, "Operator"
  

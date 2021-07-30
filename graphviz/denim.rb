@@ -19,6 +19,7 @@ graph("Denim"){
   resource :r_jeans_disc, "Jeans Vol (Discarded)" # discarded jeans
   resource :r_cotton, "Cotton garments Vol (Sorted)" # sorted cotton garments
   resource :r_cotton_clean, "Cotton garments Vol (Clean)" # clean cotton garments
+  resource :r_cleaning_waste, "Waste (Cleaning)" # clean cotton garments
   resource :r_cotton_clipped, "Cotton Vol (Clipped)" # clipped cotton garments
   resource :r_cotton_unraveled, "Cotton Vol (Unraveled)"
   resource :r_spinning_fibers, "Spinning Fiber"
@@ -55,18 +56,40 @@ graph("Denim"){
   flow [:r_jeans_use, :e_use, :r_jeans_use]
 
   # 4a. consumer trashes jeans to waste
-  event :e_discard_cons, "Transfer (trash)"
-  role :e_discard_cons, :a_consumer, "Provider"
-  role :e_discard_cons, :a_incinerator, "Receiver"
+  event :e_trash_cons, "Transfer (trash)"
+  role :e_trash_cons, :a_consumer, "Provider"
+  role :e_trash_cons, :a_incinerator, "Receiver"
   event :e_incinerate, "Consume (incinerate)"
   role :e_incinerate, :a_incinerator, "Operator"
-  flow [:r_jeans_use, :e_discard_cons, :r_waste, :e_incinerate]
+  flow [:r_jeans_use, :e_trash_cons, :r_waste, :e_incinerate]
 
-  # 5. consumer transfer (discard) to sorter
+  # 5. consumer transfer (discards) to sorter
+  event :e_discard_cons, "Transfer (discard)"
+  role :e_discard_cons, :a_consumer, "Provider"
+  role :e_discard_cons, :a_sorter, "Receiver"
+  flow [:r_jeans_use, :e_discard_cons, :r_jeans_disc]
+
   # 6. sorter sorts jeans to cotton
-  # 7. sorter transfers cotton to cleaner
-  # 8. cleaner transfers cotton to clipper
+  event :e_sort, "Consume/Produce (sort)"
+  role :e_sort, :a_sorter, "Operator"
+  flow [:r_jeans_disc, :e_sort, :r_cotton]
+
+  # 7. sorter transfers (sells?) cotton to cleaner, which cleans AND clips
+  event :e_sell_sorter, "Transfer (sell)"
+  role :e_sell_sorter, :a_sorter, "Provider"
+  role :e_sell_sorter, :a_cleaning, "Receiver"
+  event :e_clean, "Modify (clean)"
+  role :e_clean, :a_cleaning, "Operator"
+  event :e_clip, "Modify (clip)"
+  role :e_clip, :a_cleaning, "Operator"
+  flow [:r_cotton, :e_sell_sorter, :r_cotton, :e_clean, :r_cotton_clean , :e_clip, :r_cotton_clipped]
+  
   # 8a. cleaner thrashes cotton to waste
+  event :e_trash_clean, "Transfer (trash)"
+  role :e_trash_clean, :a_cleaning, "Provider"
+  role :e_trash_clean, :a_incinerator, "Receiver"
+  flow [:e_clean, :r_cleaning_waste, :e_trash_clean, :r_waste]
+
   # 9. clipper transfers cotton to unraveler
   # 10. unraveler transfers (unraveled) cotton to preparator 
   # 11. preparator transfers denim fibers to spinner
