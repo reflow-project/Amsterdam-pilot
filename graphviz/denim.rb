@@ -14,6 +14,7 @@ graph("Denim"){
   resource :r_denim_cloth, "Denim Vol" # ready for jeans production
   resource :r_denim_cloth_waste, "Denim Vol"# production waste 
   resource :r_jeans_new, "Jeans Lot (New)" # fresh jeans
+  resource :r_jeans_retail, "Jeans Inv (in rack)" # jeans in shop
   resource :r_jeans_use, "Jeans Lot (In use)" # in use jeans
   resource :r_jeans_disc, "Jeans Vol (Discarded)" # discarded jeans
   resource :r_cotton, "Cotton garments Vol (Sorted)" # sorted cotton garments
@@ -36,10 +37,31 @@ graph("Denim"){
   role :e_recycle_atelier, :a_unraveler, "Receiver"
   flow [:e_create, :r_denim_cloth_waste, :e_recycle_atelier]
    
-  # 2. atelier transfer to retail
+  # 2. atelier transfer jeans to retail
+  event :e_sell_atelier, "Transfer (sell)"
+  role :e_sell_atelier, :a_atelier, "Provider"
+  role :e_sell_atelier, :a_retail, "Receiver"
+  flow [:r_jeans_new, :e_sell_atelier, :r_jeans_retail]
+
   # 3. retail sells to consumer
+  event :e_sell_retail, "Transfer (sell)"
+  role :e_sell_retail, :a_retail, "Provider"
+  role :e_sell_retail, :a_consumer, "Receiver"
+  flow [:r_jeans_retail, :e_sell_retail, :r_jeans_use]
+
   # 4. consumer in use (laundry, maintainance, repair events)
+  event :e_use, "Use (laundry, maint, rep)"
+  role :e_use, :a_consumer, "User"
+  flow [:r_jeans_use, :e_use, :r_jeans_use]
+
   # 4a. consumer trashes jeans to waste
+  event :e_discard_cons, "Transfer (trash)"
+  role :e_discard_cons, :a_consumer, "Provider"
+  role :e_discard_cons, :a_incinerator, "Receiver"
+  event :e_incinerate, "Consume (incinerate)"
+  role :e_incinerate, :a_incinerator, "Operator"
+  flow [:r_jeans_use, :e_discard_cons, :r_waste, :e_incinerate]
+
   # 5. consumer transfer (discard) to sorter
   # 6. sorter sorts jeans to cotton
   # 7. sorter transfers cotton to cleaner
