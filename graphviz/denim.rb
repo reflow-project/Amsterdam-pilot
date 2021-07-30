@@ -90,11 +90,37 @@ graph("Denim"){
   role :e_trash_clean, :a_incinerator, "Receiver"
   flow [:e_clean, :r_cleaning_waste, :e_trash_clean, :r_waste]
 
-  # 9. clipper transfers cotton to unraveler
-  # 10. unraveler transfers (unraveled) cotton to preparator 
-  # 11. preparator transfers denim fibers to spinner
-  # 12. spinner produces cloth
-  # 13. spinner transfers cloth to atelier (sell)
-  # back to 1.
+  # 9. clipper transfers cotton to unraveler, which unravels
+  event :e_sell_cleaner, "Transfer (sell)"
+  role :e_sell_cleaner, :a_cleaning, "Provider"
+  role :e_sell_cleaner, :a_unraveler, "Receiver"
+  event :e_unravel, "Consume / Produce (unravel)"
+  role :e_unravel, :a_unraveler, "Operator"
+  flow [:r_cotton_clipped, :e_sell_cleaner, :r_cotton_clipped, :e_unravel, :r_cotton_unraveled]
+  # also it unravels production waste
+  flow [:e_recycle_atelier, :r_cotton_clipped]
+
+
+  # 10. unraveler transfers (unraveled) cotton to preparator, which prepares
+  event :e_sell_unraveler, "Transfer (sell)"
+  role :e_sell_unraveler, :a_unraveler, "Provider"
+  role :e_sell_unraveler, :a_preparator, "Receiver"
+  event :e_prepare, "Consume / Produce (prepare)"
+  role :e_prepare, :a_preparator, "Operator"
+  flow [:r_cellulose, :e_prepare]
+  flow [:r_cotton_unraveled, :e_sell_unraveler, :r_cotton_unraveled, :e_prepare, :r_spinning_fibers]
+
+  # 11. preparator transfers denim fibers to spinner, which produces cloth, and sells it to atelier
+  event :e_sell_prep, "Transfer (sell)"
+  role :e_sell_prep, :a_preparator, "Provider"
+  role :e_sell_prep, :a_spinner, "Receiver"
+  event :e_spin, "Consume / Produce (spin)"
+  role :e_spin, :a_spinner, "Operator"
+  event :e_sell_spin, "Transfer (sell)"
+  role :e_sell_spin, :a_spinner, "Provider"
+  role :e_sell_spin, :a_atelier, "Receiver"
+  flow [:r_spinning_fibers, :e_sell_prep, :r_spinning_fibers, :e_spin, :r_denim_cloth, :e_sell_spin, :r_denim_cloth]
+  
+  #loop closed
 
 }
