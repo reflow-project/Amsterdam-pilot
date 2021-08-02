@@ -2,32 +2,32 @@ require_relative 'dsl.rb'
 
 graph("Zorgschorten") {
 
-  agent :A1, "Hospital"
-  agent :A2, "Laundry Service"
-  agent :A3, "Textile Service Company"
+  agent :a_hospital, "Hospital"
+  agent :a_laundry, "Laundry Service"
+  agent :a_tsc, "Textile Service Company"
 
-  resource :R1, "Gown Lot (dirty)"
-  resource :R2, "Gown Lot (dirty)"
-  resource :R3, "Gown Lot (clean)"
-  resource :R4, "Gown Lot (clean)"
-  resource :R5, "Gown Vol (inv up)"
-  resource :R6, "Gown Vol (inv down)"
+  resource :r_gown_dirty, "Gown Lot (dirty)"
+  resource :r_gown_dirty2, "Gown Lot (dirty)"
+  resource :r_gown_clean, "Gown Lot (clean)"
+  resource :r_gown_clean2, "Gown Lot (clean)"
+  resource :r_gown_inv_up, "Gown Vol (inv up)"
+  resource :r_gown_inv_down, "Gown Vol (inv down)"
 
-  event :E1, "Transfer (pickup)" 
-  event :E2, "Work (laundry)" 
-  event :E3, "Transfer" 
-  event :E4, "Modify (QI)" 
-  event :E5, "Transfer (Delivery)" 
-  event :E6, "Use (Wear)"
+  event :e_pickup, "Transfer (pickup)" 
+  event :e_work, "Work (laundry)" 
+  event :e_pickup_tcs, "Transfer" 
+  event :e_qi, "Modify (QI)" 
+  event :e_pickup_hospital, "Transfer (Delivery)" 
+  event :e_use, "Use (Wear)"
 
-  role :E1, :A1, "provider"
-  role :E1, :A2, "receiver"
-  role :E2, :A2, "performer"
-  role :E3, :A2, "provider"
-  role :E4, :A3, "inspector"
-  role :E5, :A3, "provider"
-  role :E5, :A1, "receiver"
-  role :E6, :A1, "user"
+  role :e_pickup, :a_hospital, "provider"
+  role :e_pickup, :a_laundry, "receiver"
+  role :e_work, :a_laundry, "performer"
+  role :e_pickup_tcs, :a_laundry, "provider"
+  role :e_qi, :a_tsc, "inspector"
+  role :e_pickup_hospital, :a_tsc, "provider"
+  role :e_pickup_hospital, :a_hospital, "receiver"
+  role :e_use, :a_hospital, "user"
 
-  flow [:R1,:E1,:R2,:E2,:R3,:E3,:R4,:E4,:R5,:E5,:R6,:E6,:R1]
+  flow [:r_gown_dirty,:e_pickup,:r_gown_dirty2,:e_work,:r_gown_clean,:e_pickup_tcs,:r_gown_clean2,:e_qi,:r_gown_inv_up,:e_pickup_hospital,:r_gown_inv_down,:e_use,:r_gown_dirty]
 }
