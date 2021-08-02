@@ -61,12 +61,46 @@ graph("Zorgschorten") {
   flow [:e_qi, :r_gown_dep, :e_transfer_sort, :r_unsorted, :e_sort, :r_waste, :e_transfer_waste, :r_waste, :e_incinerate]
 
   # 3. production flow
-  
+  agent :a_unraveler, "Unraveling Agent"
+  agent :a_tc, "Textile Company"
+  agent :a_atelier, "Confectie Atelier"
+
+  resource :r_material, "Recycleable Material Vol (kg)"
+  resource :r_unraveled, "Unraveled Material Vol (kg)"
+  resource :r_textile, "Textile Vol (kg)"
+  resource :r_gown_new, "Gown Lot (new)"
+
   # recyleable material is transferred from sorting center to unraveling agent
+  event :e_transfer_unrav, "Transfer"
+  role :e_transfer_unrav, :a_sorter, "Provider"
+  role :e_transfer_unrav, :a_unraveler, "Receiver"
+
   # unraveling agent recycles to unraveled material
+  event :e_unravel, "Consume & Produce (Unravel)"
+  role :e_unravel, :a_unraveler, "Operator"
+
   # unraveled material is transfered to textile company
+  event :e_transfer_tc, "Transfer"
+  role :e_transfer_tc, :a_unraveler, "Provider"
+  role :e_transfer_tc, :a_tc, "Receiver"
+
   # textile company produces textile from unraveled material
+  event :e_recycle, "Consume / Produce (Recycle)"
+  role :e_recycle, :a_tc, "Operator"
+
   # textile is transferred from textile company to confectie atelier
+  event :e_transfer_atelier, "Transfer"
+  role :e_transfer_atelier, :a_tc, "Provider"
+  role :e_transfer_atelier, :a_atelier, "Receiver"
+
   # confectie atelier produces new gown lot
+  event :e_manufacture, "Consume / Produce (Manufacture)"
+  role :e_manufacture, :a_atelier, "Operator"
+
   # gown lot is sold to hospital
+  event :e_transfer_hos, "Transfer (sell)"
+  role :e_transfer_hos, :a_atelier, "Provider"
+  role :e_transfer_hos, :a_hospital, "Receiver"
+
+  flow [:e_sort, :r_material, :e_transfer_unrav, :r_material, :e_unravel, :r_unraveled, :e_transfer_tc, :r_unraveled, :e_recycle, :r_textile, :e_transfer_atelier, :r_textile, :e_manufacture, :r_gown_new, :e_transfer_hos, :r_gown_inv_up]
 }
