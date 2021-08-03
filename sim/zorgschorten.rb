@@ -32,8 +32,8 @@ graph("Zorgschorten") do
   event :e_out_use, "Use (Discard)" do 
     simulation(:cron => "*/1" :amount => "10-40") do
       role :a_hospital, Role::Performer
-      consume :gown_in_use # lower the in use pool
-      produce :gown_dirty_pool # raise the dirty pool
+      consume :gown_in_use # lower / remove resources from the in use pool
+      produce :gown_dirty_pool # raise / add resources to  the dirty pool
     end
   end 
 
@@ -43,7 +43,7 @@ graph("Zorgschorten") do
       role :a_hospital, Role::Provider 
       role :a_launderer, Role::Receiver 
       consume :gown_dirty_pool # lowers the pool to 0
-      produce :gown_dirty_lot # with the total amount in the pool
+      produce :gown_dirty_lot # with the total amount / the resources in the pool
       transfer :gown_dirty_lot 
     end
   end 
