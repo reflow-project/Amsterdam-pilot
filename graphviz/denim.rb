@@ -1,19 +1,77 @@
 require_relative 'dsl.rb'
 
+# From https://miro.com/app/board/o9J_lXpcy4c=/
+# Denim deal Goals 2030
+# A new industrical standard for denim fabrics - 5% post consumer material (100% cotton)
+# 3 mln jeans in the Dutch market - 20% post-consumer material (100% cotton)
+# 
+# Reflow Objectives ?
+# Reflow Pilot team will monitor Global market
+# Reflow Pilot team wil monitor Dutch market
+# 
+# What about amsterdam ?
 graph("Denim"){
+  # notes:
+  # post consumer clipping production is an innovation
+  # transport is not considered
+ 
+  # Role Spinner TBD  (not known yet who is the spinner in denim deal)
+  # Role Weaver (missing in graph?)
+  # Bossa Ticaret ve Sanayi Isletmeleri T.A.S (Turkey)
+  # Orta Anadolu Ticaret ve Sanayi Isletmesi T.A.S (Turkey)
+  # Wolkat Marocco (Morocco)
+  # Calik Denim Tekstil San. ve Tic A.S (Trukey)
+  # Kipas (Turkey)
   agent :a_spinner, "Spinner"
+
+  # Provider of fibers TBD
   agent :a_preparator, "Spinning Preparator"
+
+  # Role Manufacturers
+  # Soorty (Pakistan)
+  # Agi Denim (Pakistan)
+  # Ereks Konf. San Tic A.S. (Turkey)
+  # Wolkat Marocco (Morocco)
   agent :a_atelier, "Confection Company"
+
+  # Role Retailers / Brands
+  # KOI International B.V (NL)
+  # MUD Jeans International B.V (NL)
+  # 247 Jeans BV (NL)
+  # PHV Europe BV (NL)
+  # Kuyichi BV (NL)
+  # Scotch & Soda B.V. (NL)
+  # JOG B.V. (NL)
   agent :a_retail, "Retail"
+
   agent :a_consumer, "Consumer"
+ 
+  # Role Waste Collectors; 
+  # Circulus-Berkel B.V. (NL)
+  # Cooperatieve Vereniging Midwaste Milieu U.A. (NL)
+  # Reinigingsdienst Rd4 (NL)
+  # Stichting Leger des Heis ReShare (NL)
+  # Stichting Sympany (NL)
+  # Lamme Textiles (NL)
+  # Wieland Textiles (NL)
+  # Role Sorters:
+  # Smart Fibersort B.V (Onderdeel van Wieland) (NL)
+  # Wolkat Products B.V (NL)
   agent :a_sorter, "Sorting Company"
+  
+  # Role Shredders
+  # Gama Recycled A.S (Turkey)
+  # Brightloops B.V (NL)
+  # Recovertex (Spain)
+  # Wolkat Morocco (Morrocco)
   agent :a_cleaning, "Cleaning Company"
   agent :a_unraveler, "Unraveling Company"
+
+  # Who ?
   agent :a_incinerator, "Incinerator"
 
   resource :r_denim_cloth, "Denim Vol" # ready for jeans production
-  resource :r_denim_cloth_waste, "Denim Vol"# production waste 
-  resource :r_jeans_new, "Jeans Lot (New)" # fresh jeans
+  resource :r_denim_cloth_waste, "Denim Vol"# production waste resource :r_jeans_new, "Jeans Lot (New)" # fresh jeans
   resource :r_jeans_retail, "Jeans Inv (in rack)" # jeans in shop
   resource :r_jeans_use, "Jeans Lot (In use)" # in use jeans
   resource :r_jeans_disc, "Jeans Vol (Discarded)" # discarded jeans
