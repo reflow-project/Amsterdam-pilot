@@ -28,17 +28,20 @@ graph("Denim"){
 
   # flow:
   # 1. atelier produces jeans from cloth
+  # 27 kg.
   event :e_create, "Produce"
   role :e_create, :a_atelier, "Operator"
   flow [:r_denim_cloth, :e_create, :r_jeans_new]
   
   # 1a. atelier transfers cloth production waste to unraveler
+  # 4 kg.
   event :e_recycle_atelier, "Transfer (production waste)"
   role :e_recycle_atelier, :a_atelier, "Provider"
   role :e_recycle_atelier, :a_unraveler, "Receiver"
   flow [:e_create, :r_denim_cloth_waste, :e_recycle_atelier]
    
   # 2. atelier transfer jeans to retail
+  # 23 kg.
   event :e_sell_atelier, "Transfer (sell)"
   role :e_sell_atelier, :a_atelier, "Provider"
   role :e_sell_atelier, :a_retail, "Receiver"
@@ -56,6 +59,7 @@ graph("Denim"){
   flow [:r_jeans_use, :e_use, :r_jeans_use]
 
   # 4a. consumer trashes jeans to waste
+  # 6 kg.
   event :e_trash_cons, "Transfer (trash)"
   role :e_trash_cons, :a_consumer, "Provider"
   role :e_trash_cons, :a_incinerator, "Receiver"
@@ -64,12 +68,14 @@ graph("Denim"){
   flow [:r_jeans_use, :e_trash_cons, :r_waste, :e_incinerate]
 
   # 5. consumer transfer (discards) to sorter
+  # 10 kg.
   event :e_discard_cons, "Transfer (discard)"
   role :e_discard_cons, :a_consumer, "Provider"
   role :e_discard_cons, :a_sorter, "Receiver"
   flow [:r_jeans_use, :e_discard_cons, :r_jeans_disc]
 
   # 6. sorter sorts jeans to cotton
+  # 10 kg.
   event :e_sort, "Consume/Produce (sort)"
   role :e_sort, :a_sorter, "Operator"
   flow [:r_jeans_disc, :e_sort, :r_cotton]
@@ -85,12 +91,14 @@ graph("Denim"){
   flow [:r_cotton, :e_sell_sorter, :r_cotton, :e_clean, :r_cotton_clean , :e_clip, :r_cotton_clipped]
   
   # 8a. cleaner thrashes cotton to waste
+  # 4kg.
   event :e_trash_clean, "Transfer (trash)"
   role :e_trash_clean, :a_cleaning, "Provider"
   role :e_trash_clean, :a_incinerator, "Receiver"
   flow [:e_clean, :r_cleaning_waste, :e_trash_clean, :r_waste]
 
   # 9. clipper transfers cotton to unraveler, which unravels
+  # 6 kg.
   event :e_sell_cleaner, "Transfer (sell)"
   role :e_sell_cleaner, :a_cleaning, "Provider"
   role :e_sell_cleaner, :a_unraveler, "Receiver"
@@ -102,15 +110,19 @@ graph("Denim"){
 
 
   # 10. unraveler transfers (unraveled) cotton to preparator, which prepares
+  # 6kg
   event :e_sell_unraveler, "Transfer (sell)"
   role :e_sell_unraveler, :a_unraveler, "Provider"
   role :e_sell_unraveler, :a_preparator, "Receiver"
   event :e_prepare, "Consume / Produce (prepare)"
   role :e_prepare, :a_preparator, "Operator"
+
   flow [:r_cellulose, :e_prepare]
+  # 24 kg
   flow [:r_cotton_unraveled, :e_sell_unraveler, :r_cotton_unraveled, :e_prepare, :r_spinning_fibers]
 
   # 11. preparator transfers denim fibers to spinner, which produces cloth, and sells it to atelier
+  # 30 kg
   event :e_sell_prep, "Transfer (sell)"
   role :e_sell_prep, :a_preparator, "Provider"
   role :e_sell_prep, :a_spinner, "Receiver"
