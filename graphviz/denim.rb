@@ -16,13 +16,15 @@ graph("Denim"){
   # transport is not considered
  
   # Role Spinner TBD  (not known yet who is the spinner in denim deal)
+  agent :a_spinner, "Spinner"
+  
   # Role Weaver (missing in graph?)
   # Bossa Ticaret ve Sanayi Isletmeleri T.A.S (Turkey)
   # Orta Anadolu Ticaret ve Sanayi Isletmesi T.A.S (Turkey)
   # Wolkat Marocco (Morocco)
   # Calik Denim Tekstil San. ve Tic A.S (Trukey)
   # Kipas (Turkey)
-  agent :a_spinner, "Spinner"
+  agent :a_weaver, "Weaver"
 
   # Provider of fibers TBD
   agent :a_preparator, "Spinning Preparator"
@@ -70,17 +72,21 @@ graph("Denim"){
   # Who ?
   agent :a_incinerator, "Incinerator"
 
-  resource :r_denim_cloth, "Denim Vol" # ready for jeans production
-  resource :r_denim_cloth_waste, "Denim Vol"# production waste resource :r_jeans_new, "Jeans Lot (New)" # fresh jeans
-  resource :r_jeans_retail, "Jeans Inv (in rack)" # jeans in shop
+  # fibers, yarns (spun fibers), fabrics (woven yarn), clothing/textiles (manufactured from fabrics)
+  # cotton fibers (spinning) => cotton yarn (weaving) => denim fabric (manufacturing) => jeans
+  #
+  resource :r_denim_fabric, "Denim Fabric Vol" # ready for jeans production
+  resource :r_denim_fabric_waste, "Denim Fabric Waste Vol"# production waste resource :r_jeans_new, "Jeans Lot (New)" # fresh jeans
+  resource :r_jeans_new, "Jeans (new)" # jeans in shop
   resource :r_jeans_use, "Jeans Lot (In use)" # in use jeans
   resource :r_jeans_disc, "Jeans Vol (Discarded)" # discarded jeans
   resource :r_cotton, "Cotton garments Vol (Sorted)" # sorted cotton garments
   resource :r_cotton_clean, "Cotton garments Vol (Clean)" # clean cotton garments
   resource :r_cleaning_waste, "Waste (Cleaning)" # clean cotton garments
-  resource :r_cotton_clipped, "Cotton Vol (Clipped)" # clipped cotton garments
-  resource :r_cotton_unraveled, "Cotton Vol (Unraveled)"
-  resource :r_spinning_fibers, "Spinning Fiber"
+  resource :r_cotton_clipped, "Cotton Fabric Vol (Clipped)" # clipped cotton garments
+  resource :r_cotton_unraveled, "Cotton Fabric Vol (Unraveled)"
+  resource :r_cotton_fibers, "Cotton Fiber"
+  resource :r_cotton_yarn, "Cotton Yarn"
   resource :r_cellulose, "Cellulose" # added by spinner to unraveled cotton to make spinning fibers
   resource :r_waste, "Waste"
 
@@ -89,27 +95,27 @@ graph("Denim"){
   # 27 kg.
   event :e_create, "Produce"
   role :e_create, :a_atelier, "Operator"
-  flow [:r_denim_cloth, :e_create, :r_jeans_new]
+  flow [:r_denim_fabric, :e_create, :r_jeans_new]
   
   # 1a. atelier transfers cloth production waste to unraveler
   # 4 kg.
   event :e_recycle_atelier, "Transfer (production waste)"
   role :e_recycle_atelier, :a_atelier, "Provider"
   role :e_recycle_atelier, :a_unraveler, "Receiver"
-  flow [:e_create, :r_denim_cloth_waste, :e_recycle_atelier]
+  flow [:e_create, :r_denim_fabric_waste, :e_recycle_atelier]
    
   # 2. atelier transfer jeans to retail
   # 23 kg.
   event :e_sell_atelier, "Transfer (sell)"
   role :e_sell_atelier, :a_atelier, "Provider"
   role :e_sell_atelier, :a_retail, "Receiver"
-  flow [:r_jeans_new, :e_sell_atelier, :r_jeans_retail]
+  flow [:r_jeans_new, :e_sell_atelier, :r_jeans_new]
 
   # 3. retail sells to consumer
   event :e_sell_retail, "Transfer (sell)"
   role :e_sell_retail, :a_retail, "Provider"
   role :e_sell_retail, :a_consumer, "Receiver"
-  flow [:r_jeans_retail, :e_sell_retail, :r_jeans_use]
+  flow [:r_jeans_new, :e_sell_retail, :r_jeans_use]
 
   # 4. consumer in use (laundry, maintainance, repair events)
   event :e_use, "Use (laundry, maint, rep)"
@@ -177,9 +183,10 @@ graph("Denim"){
 
   flow [:r_cellulose, :e_prepare]
   # 24 kg
-  flow [:r_cotton_unraveled, :e_sell_unraveler, :r_cotton_unraveled, :e_prepare, :r_spinning_fibers]
+  flow [:r_cotton_unraveled, :e_sell_unraveler, :r_cotton_unraveled, :e_prepare, :r_cotton_fibers]
 
-  # 11. preparator transfers denim fibers to spinner, which produces cloth, and sells it to atelier
+  # 11. preparator transfers denim fibers to spinner, which produces yarn
+  # and sells it to weaver 
   # 30 kg
   event :e_sell_prep, "Transfer (sell)"
   role :e_sell_prep, :a_preparator, "Provider"
@@ -188,9 +195,17 @@ graph("Denim"){
   role :e_spin, :a_spinner, "Operator"
   event :e_sell_spin, "Transfer (sell)"
   role :e_sell_spin, :a_spinner, "Provider"
-  role :e_sell_spin, :a_atelier, "Receiver"
-  flow [:r_spinning_fibers, :e_sell_prep, :r_spinning_fibers, :e_spin, :r_denim_cloth, :e_sell_spin, :r_denim_cloth]
-  
+  role :e_sell_spin, :a_weaver, "Receiver"
+  flow [:r_cotton_fibers, :e_sell_prep, :r_cotton_fibers, :e_spin, :r_cotton_yarn, :e_sell_spin]
+ 
+  # 12. weaver weaves yarn to fabric, and sells it to atelier
+  event :e_weave, "Consume / Produce (weave)"
+  role :e_weave, :a_weaver, "Operator"
+  event :e_sell_fabric, "Transfer (sell)"
+  role :e_sell_fabric, :a_weaver, "Provider"
+  role :e_sell_fabric, :a_atelier, "Receiver"
+
+  flow [:r_cotton_yarn, :e_weave, :r_denim_fabric, :e_sell_fabric, :r_denim_fabric]
   #loop closed
 
 }
