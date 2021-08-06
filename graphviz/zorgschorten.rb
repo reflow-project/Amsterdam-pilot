@@ -24,6 +24,7 @@ graph("Zorgschorten") {
   role :e_pickup, :a_hospital, "provider"
   role :e_pickup, :a_laundry, "receiver"
   role :e_work, :a_laundry, "performer"
+  role :e_pickup_tcs, :a_tsc, "receiver"
   role :e_pickup_tcs, :a_laundry, "provider"
   role :e_qi, :a_tsc, "inspector"
   role :e_pickup_hospital, :a_tsc, "provider"
