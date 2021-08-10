@@ -125,13 +125,13 @@ graph("Denim"){
   sub_graph("Retail and Use") do
     # 2. atelier transfer jeans to retail
     # 23 kg.
-    event :e_sell_atelier, "Transfer (sell)"
+    event :e_sell_atelier, "Transfer (sell bulk)"
     role :e_sell_atelier, :a_atelier, "Provider"
     role :e_sell_atelier, :a_retail, "Receiver"
     flow [:r_jeans_new, :e_sell_atelier, :r_jeans_new]
 
     # 3. retail sells to consumer
-    event :e_sell_retail, "Transfer (sell)"
+    event :e_sell_retail, "Transfer (sell item)"
     role :e_sell_retail, :a_retail, "Provider"
     role :e_sell_retail, :a_consumer, "Receiver"
     flow [:r_jeans_new, :e_sell_retail, :r_jeans_use]
