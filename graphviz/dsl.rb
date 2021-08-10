@@ -1,5 +1,6 @@
 #dsl for generating value flow diagrams with graphviz
 LABEL_WIDTH = 10 # max characters
+$cluster_count = 0
 
 # print an agent
 def agent(id, label)
@@ -41,9 +42,18 @@ end
 
 def graph(label)
   puts "digraph #{label} {"
-  puts "rankdir=\"LR\""
+  puts "rankdir=\"LR\";"
+  puts "graph [compound=true];"
   puts ""
   yield
   puts "}"
 end
 
+def sub_graph(label)
+  puts "subgraph cluster_#{$cluster_count} {"
+  puts "label=\"#{label}\"" 
+  puts ""
+  yield
+  puts "}"
+  $cluster_count += 1
+end
