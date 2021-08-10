@@ -16,7 +16,15 @@ def event(id, label)
 end
 
 def role(event, agent, role)
-  puts "#{event} -> #{agent} [dir=none, style=\"dotted\" label= \" #{role} \", fontname=\"Helvetica\"]" 
+  color = "#000000"
+  if(role.downcase == "receiver")
+    color = "#ff0000"
+  end
+  if(role.downcase == "provider")
+    color = "#0000ff"
+  end
+
+  puts "#{event} -> #{agent} [dir=none, style=\"dotted\" label= \" #{role} \", fontname=\"Helvetica\", color=\"#{color}\", fontcolor=\"#{color}\"]" 
 end
 
 def flow(ids)
