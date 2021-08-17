@@ -1,13 +1,19 @@
 require_relative 'dsl.rb'
 
 graph("Zorgschorten") {
+# rfid tagging of new gowns to monitor use cycles and recycle rates
 
   #use cycle
   sub_graph("Use Cycle") do 
     agent :a_hospital, "Hospital"
-    agent :a_laundry, "Laundry Service"
-    agent :a_tsc, "Textile Service Company"
+    #OLVG
 
+    agent :a_laundry, "Laundry Service"
+    #Clean lease
+
+    agent :a_tsc, "Textile Service Company"
+    #Clean lease
+    
     resource :r_gown_dirty, "Gown Lot (dirty)"
     resource :r_gown_dirty2, "Gown Lot (dirty)"
     resource :r_gown_clean, "Gown Lot (clean)"
@@ -37,7 +43,10 @@ graph("Zorgschorten") {
 
   sub_graph("Sorting and Incineration") do
     # 1. sorting and incineration flow
+    
     agent :a_sorter, "Sorting Center"
+    # Wieland
+
     agent :a_incinerator, "Incinerator"
 
     resource :r_gown_dep, "Gown Lot (depreciated)"
@@ -67,7 +76,11 @@ graph("Zorgschorten") {
 
   # 3. production flow
   sub_graph("Production flow") do
+   
     agent :a_unraveler, "Unraveling Agent"
+    # Frankenhuis / Wieland
+   
+    # Manufacturing: will occur in AMS by new producer
     agent :a_tc, "Textile Company"
     agent :a_atelier, "Confectie Atelier"
 
