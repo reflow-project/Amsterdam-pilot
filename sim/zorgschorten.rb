@@ -1,7 +1,8 @@
 require_relative 'dsl.rb'
 require 'securerandom'
 
-simulation("Zorgschorten") do 
+#only thirty days for dev purposes
+simulation("Zorgschorten", Date.today, Date.today + 30) do 
 
 # set an optional start date and end date for the simulation
 # default is today as start date and 1 year of simulated events
@@ -55,15 +56,15 @@ simulation("Zorgschorten") do
   end 
 
   # # every seven days the dirty pool is picked up
-  # event :e_transfer_pickup, "pickup" do 
-  #   schedule :cron => 7 do
-  #     role :a_hospital, Role::Provider 
-  #     role :a_launderer, Role::Receiver 
-  #     consume :gown_dirty_pool # lowers the pool to 0
-  #     produce :gown_dirty_lot # with the total amount / the resources in the pool
-  #     transfer :gown_dirty_lot 
-  #   end
-  # end 
+  event :e_transfer_pickup, "pickup" do 
+    schedule 7 
+    process do
+      with_performer :a_hospital
+      consume :gown_dirty_pool # lowers the pool to 0
+      produce :gown_dirty_lot # with the total amount / the resources in the pool
+      transfer :gown_dirty_lot, :a_hospital, :a_launderer
+    end
+  end 
 
   # # performs laundry for entire lot 1 day abter receiving :gown_dirty_lot
   # event :e_laundry, "Work (do laundry)" do

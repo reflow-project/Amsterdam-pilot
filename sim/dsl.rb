@@ -44,11 +44,11 @@ def simulation(label, date_start = Date.today, date_end = Date.today + 365)
     $planned_events[index].each do |event_key|
       puts "#{day}: processing event: #{event_key}"
       #execute the process
+      $context = {} #clean the context for every call
       $processes[event_key].call
       sleep 0.1 #delay not to go to fast
     end
   end
-
 end
 
 # setup an agent
@@ -156,21 +156,50 @@ def with_performer(agent)
   $context[:process_performer] = agent 
 end
 
+#convenience function to return the current number of items in the resource
+#can be a single resource, a lot, pool or inventory
+def current_amount(resource_key)
+  return 1 if $resources.key? resource_key
+  return $lots[resource_key][:items].count if $lots.key? resource_key
+  return $pools[resource_key][:items].count if $pools.key? resource_key
+  return $inventories[resource_key][:items].count if $inventories.key? resource_key
+  raise "Can't find resource: #{resource_key}"
+end
+
 # perform a consume verb, if a fraction is specified operate on part of the batch, 
 # default operate on everything
 def consume(resource_key, fraction = 1.0)
-  amount = fraction * $context[:process_amount]
+  # we set the default amount to be everything in the set at the moment
+  amount = current_amount(resource_key) 
+  
+  #unless there is an explicit amount specified in the context
+  if($context[:process_amount])
+    amount = fraction * $context[:process_amount]
+  end
   performer = $context[:process_performer]
+  
   puts "perform consume #{amount} #{resource_key} by #{performer}"
 end
 
 def produce(resource_key, fraction = 1.0)
-  amount = fraction * $context[:process_amount]
+  # we set the default amount to be everything in the set at the moment
+  amount = current_amount(resource_key) 
+  #unless there is an explicit amount specified in the context
+  if($context[:process_amount])
+    amount = fraction * $context[:process_amount]
+  end
   performer = $context[:process_performer]
   puts "perform produce #{amount} #{resource_key} by #{performer}"
 end
 
-def transfer(resource_key, fraction = 1.0, provider, receiver)
-  amount = fraction * $context[:process_amount]
-  puts "perform transfer #{resource_key} from #{provider} to #{receiver}"
+def transfer(resource_key, provider, receiver, fraction = 1.0)
+  # we set the default amount to be everything in the set at the moment
+  amount = current_amount(resource_key) 
+  
+  #unless there is an explicit amount specified in the context
+  if($context[:process_amount])
+    amount = fraction * $context[:process_amount]
+  end
+
+  puts "perform transfer of #{amount} #{resource_key} from #{provider} to #{receiver}"
 end
