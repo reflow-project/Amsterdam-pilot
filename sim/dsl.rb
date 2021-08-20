@@ -189,6 +189,16 @@ def pool_take(pool_key, amount = nil)
   return items
 end
 
+# remove and return amount items from the specified inventory
+def inventory_take(inventory_key, amount = nil)
+  max = current_amount(inventory_key)
+  amount = max  if (amount == nil or amount > max)
+
+  items = $inventories[inventory_key][:items].take(amount)
+  $inventories[inventory_key][:items] = $inventories[inventory_key][:items].drop(amount)
+  return items
+end
+
 def lot_take(lot_key)
   items = $lots[lot_key][:items]
   $lots[lot_key][:items] = [] #empty the lot
@@ -198,6 +208,11 @@ end
 # add the items to the pool
 def pool_put(items, pool_key)
   $pools[pool_key][:items].concat items
+end
+
+# add the items to the inventory
+def inventory_put(items, inventory_key)
+  $inventories[inventory_key][:items].concat items
 end
 
 #replace the lot items
@@ -231,6 +246,11 @@ end
 def action_produce_lot(lot_key)
   performer = $context[:process_performer] 
   puts "graphql PRODUCE #{lot_key} with #{$lots[lot_key][:items].count} items by #{performer}"
+end
+
+def action_produce_batch(items)
+  performer = $context[:process_performer] 
+  puts "graphql PRODUCE #{items.count} items by #{performer}"
 end
 
 def action_transfer(resource_key, provider, receiver, fraction = 1.0)

@@ -90,34 +90,48 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
     end
   end 
 
-  # # tcs inspect lot between 0-3 days after receiving
-  # event :e_inspect, "Modify (QI)" do 
-  #   schedule :on => :e_transfer_clean, :with_delay => rand(0..2) do
-  #     role :a_tsc, Role::Performer 
-  #     consume :gown_clean, "1.0" 
-  #     produce :gown_stock, "0.8-0.95" # between 0.05 and 0.2 of the lot doesn't pass inspection (should raise inventory)
-  #   end
-  # end  
+  # tcs inspect lot between 0-3 days after receiving
+  event :e_inspect, "Modify (QI)" do 
+    schedule on_event: :e_transfer_clean, :with_delay => rand(0..2) 
+    process do
+      as_performer :a_tsc
+      batch = lot_take :gown_clean
+     
+      action_modify_batch "inspect", batch #inspects the whole batch
+      amount_passed = (batch.count * rand(0.95..1)).to_i # between zero and three items fail the inspection
+      passed = batch.take(amount_passed)
+      failed = batch.drop(amount_passed)
+      
+      action_consume :gown_clean
+      action_produce_batch passed  #add all passed items to the inventory
+      inventory_put passed, :gown_stock
+    end
+  end  
 
-  # # every day, take between 1 and 10 gowns from 
-  # # the TSC stock and transfer them to the hospital
-  # event :e_transfer_delivery, "Transfer (Delivery)" do 
-  #   schedule :cron => "*/1", :with_amount => rand(1..10) do
-  #     role :a_tsc, Role::Provider 
-  #     role :a_hospital, Role::Receiver 
-  #     consume :gown_stock
-  #     produce :gown_ready_for_use
-  #     transfer :gown_ready_for_use
-  #    end
-  # end 
+  # every other day, take between 1 and 10 gowns from 
+  # the TSC stock and transfer them to the hospital
+  event :e_transfer_delivery, "Transfer (Delivery)" do 
+    schedule cron: 2 
+    process do
+      as_performer :a_tsc
+      batch = inventory_take :gown_stock, rand(1..10)
+      action_consume_batch batch #consume in reflow os 
+      lot_put :gown_ready_for_use, batch
+      action_produce_lot :gown_ready_for_use # produce a lot in reflow os
+      action_transfer :gown_ready_for_use, :a_tsc, :a_hospital # transfer lot
+     end
+  end 
 
-  # # on delivery add the lot to the in use pool 
-  # event :e_in_use, "Use (Wear)" do 
-  #   schedule :on => :e_transfer_delivery do
-  #     role :a_hospital, Role::Performer
-  #     consume :gown_ready_for_use
-  #     produce :gown_in_use #raise the in use pool
-  #   end
-  # end 
+  # on delivery add the lot to the in use pool 
+  event :e_available, "Produce (increase available gowns)" do 
+    schedule on_event: :e_transfer_delivery 
+    process do 
+      as_performer :a_hospital
+      batch = lot_take :gown_ready_for_use
+      action_consume :gown_ready_for_use
+      action_produce_batch batch #create the batch items in reflow os
+      pool_put(batch, :gown_in_use)
+    end
+  end 
 
 end
