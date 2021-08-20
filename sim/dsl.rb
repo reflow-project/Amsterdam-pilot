@@ -119,17 +119,28 @@ end
 # every specifies frequency in days, amount is an amount to generate, 
 # on specifes the name of an event that triggers the event, 
 # with_delay delays the start by a number of days
-def schedule(cron=nil, on=nil, with_delay=nil) 
+# hash arguments; cron, on_event, with_delay
+def schedule(args) 
   event_key = $context[:event_key]
-  if(cron != nil)
+  if(args[:cron] != nil)
     $nr_of_days.times do |day_nr|
-      if (day_nr % cron == 0)
+      if (day_nr % args[:cron] == 0)
         $planned_events[day_nr] << event_key 
       end
     end
   end
-  #if cron is not nil, put the event key as value in the array of every day that matches 
-  # for each day number between start and end date
+
+  if(args[:on_event] != nil)
+    trigger_event_key = args[:on_event] 
+    delay = 0
+    delay = args[:with_delay] if(args[:with_delay] != nil)
+    $nr_of_days.times do |day_nr|
+      if ($planned_events[day_nr].include? trigger_event_key)
+        $planned_events[day_nr + delay] << event_key
+      end
+    end
+  end
+
 end
 
 $processes = Hash.new 
@@ -176,6 +187,12 @@ def pool_take(pool_key, amount = nil)
   return items
 end
 
+def lot_take(lot_key)
+  items = $lots[lot_key][:items]
+  $lots[lot_key][:items] = [] #empty the lot
+  items
+end
+
 # add the items to the pool
 def pool_put(items, pool_key)
   $pools[pool_key][:items].concat items
@@ -186,16 +203,27 @@ def lot_put(lot_key, items)
   $lots[lot_key][:items] = items
 end
 
-def action_use(items)
+def action_use_batch(items)
   performer = $context[:process_performer]
   puts "graphql call USE by #{performer} on #{items.count} items" 
 end
 
+def action_modify_batch(label, items)
+  performer = $context[:process_performer]
+  puts "graphql call MODIFY #{label} by #{performer} on #{items.count} items" 
+end
+
 # perform a consume verb, if a fraction is specified operate on part of the batch, 
 # default operate on everything
-def action_consume(items)
+def action_consume_batch(items)
   performer = $context[:process_performer]
   puts "graphql CONSUME #{items.count} items by #{performer}"
+end
+
+# consume a single resource
+def action_consume(resource_key)
+  performer = $context[:process_performer]
+  puts "graphql CONSUME #{resource_key} by #{performer}" 
 end
 
 def action_produce_lot(lot_key)

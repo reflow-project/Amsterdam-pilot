@@ -41,43 +41,45 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
 
   #this agent is considered 'jit', and only deals with lots
   # Clean Lease
-
   agent :a_launderer, "Clean Lease Laundry Service"
   # on delivery add the lot to the in use pool 
+  
   # every day between 10 and 40 in use gowns are put in the hamper
   event :e_out_use, "Use (Discard)" do 
-    schedule 1 # every day
+    schedule cron: 1 # every day
     process do 
-      gowns = pool_take :gown_in_use, rand(5..10) # take is not a verb
+      batch = pool_take :gown_in_use, rand(5..10) # take is not a verb
       as_performer :a_hospital # set current agent
-      action_use gowns # register gowns as used in reflow os
-      pool_put gowns, :gown_dirty_pool # move the gowns to the dirty pool
+      action_use_batch batch # register gowns as used in reflow os
+      pool_put batch, :gown_dirty_pool # move the gowns to the dirty pool
     end
   end 
 
   # every seven days the dirty pool is picked up
   event :e_transfer_pickup, "pickup" do 
-    schedule 7  # every week 
+    schedule cron: 7  # every week 
     process do
       as_performer :a_hospital
-      gowns = pool_take :gown_dirty_pool # takes all
-      action_consume gowns # removes the gowns from the hospital inventory in reflow_os 
-      lot_put :gown_dirty_lot, gowns #put the dirty gowns in the dirty lot
+      batch = pool_take :gown_dirty_pool # takes all
+      action_consume_batch batch# removes the gowns from the hospital inventory in reflow_os 
+      lot_put :gown_dirty_lot, batch #put the dirty gowns in the dirty lot
       action_produce_lot :gown_dirty_lot # lot should have own id, containing manifest of each gown in gowns, produced in reflow_os
       action_transfer :gown_dirty_lot, :a_hospital, :a_launderer #transfer the batched gowns in reflow_os 
     end
   end 
 
-  # # performs laundry for entire lot 1 day after receiving :gown_dirty_lot
-  # event :e_laundry, "Work (do laundry)" do
-  #   schedule :on => :e_transfer_pickup, :with_delay => 1 do
-  #     role :a_launderer, Role::Performer 
-  #     consume :gown_dirty_lot
-  #     produce :gown_clean
-
-  #     # the nr of time that the gown is washed should be updated
-  #   end
-  # end 
+  # performs laundry for entire lot 1 day after receiving :gown_dirty_lot
+  event :e_laundry, "Modify (clean)" do
+    schedule on_event: :e_transfer_pickup, with_delay: 1 
+    process do
+      as_performer :a_launderer
+      batch = lot_take :gown_dirty_lot # takes all items from lot
+      action_consume :gown_dirty_lot  #consume current lot in reflow os
+      action_modify_batch "clean", batch # perform the actual cleaning in reflow os
+      lot_put :gown_clean, batch
+      action_produce_lot :gown_clean # produce new lot in reflow os
+    end
+  end 
 
   # # transfers entire lot between 0-2 days after cleaning to tsc
   # event :e_transfer_clean, "Transfer" do 
