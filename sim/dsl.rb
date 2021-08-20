@@ -151,8 +151,8 @@ def with_amount(amount)
   $context[:process_amount] = amount
 end
 
-#set the amount for the current context for a verb
-def with_performer(agent)
+#set the current agent
+def as_performer(agent)
   $context[:process_performer] = agent 
 end
 
@@ -166,33 +166,44 @@ def current_amount(resource_key)
   raise "Can't find resource: #{resource_key}"
 end
 
+# remove and return amount items from the specified pool
+def pool_take(pool_key, amount = nil)
+  max = current_amount(pool_key)
+  amount = max  if (amount == nil or amount > max)
+
+  items = $pools[pool_key][:items].take(amount)
+  $pools[pool_key][:items] = $pools[pool_key][:items].drop(amount)
+  return items
+end
+
+# add the items to the pool
+def pool_put(items, pool_key)
+  $pools[pool_key][:items].concat items
+end
+
+#replace the lot items
+def lot_put(lot_key, items)
+  $lots[lot_key][:items] = items
+end
+
+def action_use(items)
+  performer = $context[:process_performer]
+  puts "graphql call USE by #{performer} on #{items.count} items" 
+end
+
 # perform a consume verb, if a fraction is specified operate on part of the batch, 
 # default operate on everything
-def consume(resource_key, fraction = 1.0)
-  # we set the default amount to be everything in the set at the moment
-  amount = current_amount(resource_key) 
-  
-  #unless there is an explicit amount specified in the context
-  if($context[:process_amount])
-    amount = fraction * $context[:process_amount]
-  end
+def action_consume(items)
   performer = $context[:process_performer]
-  
-  puts "perform consume #{amount} #{resource_key} by #{performer}"
+  puts "graphql CONSUME #{items.count} items by #{performer}"
 end
 
-def produce(resource_key, fraction = 1.0)
-  # we set the default amount to be everything in the set at the moment
-  amount = current_amount(resource_key) 
-  #unless there is an explicit amount specified in the context
-  if($context[:process_amount])
-    amount = fraction * $context[:process_amount]
-  end
-  performer = $context[:process_performer]
-  puts "perform produce #{amount} #{resource_key} by #{performer}"
+def action_produce_lot(lot_key)
+  performer = $context[:process_performer] 
+  puts "graphql PRODUCE #{lot_key} with #{$lots[lot_key][:items].count} items by #{performer}"
 end
 
-def transfer(resource_key, provider, receiver, fraction = 1.0)
+def action_transfer(resource_key, provider, receiver, fraction = 1.0)
   # we set the default amount to be everything in the set at the moment
   amount = current_amount(resource_key) 
   
@@ -201,5 +212,6 @@ def transfer(resource_key, provider, receiver, fraction = 1.0)
     amount = fraction * $context[:process_amount]
   end
 
-  puts "perform transfer of #{amount} #{resource_key} from #{provider} to #{receiver}"
+  puts "graphql TRANSFER of #{resource_key} with #{amount} items from #{provider} to #{receiver}"
+  #nothing special needs to be taken into acount
 end

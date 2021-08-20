@@ -41,32 +41,34 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
 
   #this agent is considered 'jit', and only deals with lots
   # Clean Lease
-  agent :a_launderer, "Clean Lease Laundry Service"
 
+  agent :a_launderer, "Clean Lease Laundry Service"
   # on delivery add the lot to the in use pool 
   # every day between 10 and 40 in use gowns are put in the hamper
   event :e_out_use, "Use (Discard)" do 
     schedule 1 # every day
     process do 
-      with_amount rand(10..40)
-      with_performer :a_hospital
-      consume :gown_in_use # lower / remove resources from the in use pool
-      produce :gown_dirty_pool # raise / add resources to  the dirty pool
+      gowns = pool_take :gown_in_use, rand(5..10) # take is not a verb
+      as_performer :a_hospital # set current agent
+      action_use gowns # register gowns as used in reflow os
+      pool_put gowns, :gown_dirty_pool # move the gowns to the dirty pool
     end
   end 
 
-  # # every seven days the dirty pool is picked up
+  # every seven days the dirty pool is picked up
   event :e_transfer_pickup, "pickup" do 
-    schedule 7 
+    schedule 7  # every week 
     process do
-      with_performer :a_hospital
-      consume :gown_dirty_pool # lowers the pool to 0
-      produce :gown_dirty_lot # with the total amount / the resources in the pool
-      transfer :gown_dirty_lot, :a_hospital, :a_launderer
+      as_performer :a_hospital
+      gowns = pool_take :gown_dirty_pool # takes all
+      action_consume gowns # removes the gowns from the hospital inventory in reflow_os 
+      lot_put :gown_dirty_lot, gowns #put the dirty gowns in the dirty lot
+      action_produce_lot :gown_dirty_lot # lot should have own id, containing manifest of each gown in gowns, produced in reflow_os
+      action_transfer :gown_dirty_lot, :a_hospital, :a_launderer #transfer the batched gowns in reflow_os 
     end
   end 
 
-  # # performs laundry for entire lot 1 day abter receiving :gown_dirty_lot
+  # # performs laundry for entire lot 1 day after receiving :gown_dirty_lot
   # event :e_laundry, "Work (do laundry)" do
   #   schedule :on => :e_transfer_pickup, :with_delay => 1 do
   #     role :a_launderer, Role::Performer 
