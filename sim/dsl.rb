@@ -1,14 +1,9 @@
 require 'date'
 
 #dsl for generating value flow simulation 
-module Role
-  Provider = "ROLE_PROVIDER"
-  Receiver = "ROLE_RECEIVER"
-  Performer = "ROLE_PERFORMER"
-end
-
 # this simulation first generate all the necessary operations in a setup phase and a timetable
 # then executes the setup phase and when it's done the timetable on entry at a time using graphql requests with delays in between
+
 def simulation(label, date_start = Date.today, date_end = Date.today + 365)
   puts "#{date_start} -> #{date_end}"
   $planned_events = [] #array of days, each do contains array of event keys to process on that day
@@ -92,6 +87,7 @@ def pool(key, label, resource_key, amount = 0)
       end
   end
   $pools[key] = {:label => label, :resource_key => resource_key, :items => items, :agent_key => $context[:agent_key] }
+  #first time should produce
 end
 
 # a collection of resources that we want to keep track of in the simulation AND in reflow os 
@@ -220,6 +216,7 @@ def lot_put(lot_key, items)
   $lots[lot_key][:items] = items
 end
 
+# all actions will perform graphql calls
 def action_use_batch(items)
   performer = $context[:process_performer]
   puts "graphql USE by #{performer} on #{items.count} items" 
