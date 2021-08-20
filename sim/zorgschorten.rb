@@ -1,17 +1,24 @@
 require_relative 'dsl.rb'
 require 'securerandom'
 
-#only thirty days for dev purposes
+# use / clean cycle only for now
+# 
+# only thirty days for dev purposes
+#
+# Open issues
+# - for most 'transfer' actions it probably should become a move or transfer-custody, since i assume clean lease leases their gowns to the hospital...
+#
+# - i now modeled the transfers as batches -> gowns are consumed and lots are produced at the provider side, lots are consumed and the same gowns are produced on the receiver side, this could also be modeled with pickup / dropoff for (batches of) individual resources
+#
+# - i now model quality assurance and cleaning as modify in stead of accept
+# because there is no 'deny' for the parts to be discarded 
+# 
+# - i defined gown_stock as an inventory because it would be interesting to see if we could lower / raise the inventory level, but how does it work when you have both the individual gowns (since they all have id's that we want to track) and want to track meta information...
+#
+# - we could think about 'using' laundry machine resources for example
+#
 simulation("Zorgschorten", Date.today, Date.today + 30) do 
 
-# set an optional start date and end date for the simulation
-# default is today as start date and 1 year of simulated events
-  # first we schedule 'root event' that have :cron set
-  # then we schedule 'dependent events' that have :on set
-  # the schedule is a table with dates as keys, and as value a generated struct that contains everything to perform an action on a resource by and agent
-  # the simulation should internally keep track of what individual resources are transferred from one pool to another
-  # use / clean cycle only for now
- 
   # gowns in use in the hospital 
   resource :gown, "Gown" do
     rid = SecureRandom.uuid
@@ -32,11 +39,14 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
   agent :a_hospital, "OLVG" do
       pool :gown_in_use, "Gown Lot (in use)", :gown, rand(400..500) # gowns in use in the hospital 
       pool :gown_dirty_pool, "Gown (dirty)", :gown # gowns in the hamper in the hospital, defaults to zero
+      # should be populated in reflow os at seed time with a produce?
+      # or maybe a produce by tsc and and immediate transfer, 
   end
  
   # Clean Lease
   agent :a_tsc, "Clean Lease Service" do 
       inventory :gown_stock, "Gown (in stock)", :gown, rand(800..1000) # in stock in the tsc
+      # should be populated in reflow os at seed time with a produce?
   end
 
   #this agent is considered 'jit', and only deals with lots
@@ -44,7 +54,7 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
   agent :a_launderer, "Clean Lease Laundry Service"
   # on delivery add the lot to the in use pool 
   
-  # every day between 10 and 40 in use gowns are put in the hamper
+  # every day between 5 and 10 in use gowns are put in the hamper (wild guessing)
   event :e_out_use, "Use (Discard)" do 
     schedule cron: 1 # every day
     process do 
@@ -55,7 +65,7 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
     end
   end 
 
-  # every seven days the dirty pool is picked up
+  # every seven days the dirty pool is picked up, fantasy
   event :e_transfer_pickup, "pickup" do 
     schedule cron: 7  # every week 
     process do
@@ -68,7 +78,7 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
     end
   end 
 
-  # performs laundry for entire lot 1 day after receiving :gown_dirty_lot
+  # performs laundry for entire lot 1 day after receiving :gown_dirty_lot, fantasy
   event :e_laundry, "Modify (clean)" do
     schedule on_event: :e_transfer_pickup, with_delay: 1 
     process do
@@ -81,7 +91,7 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
     end
   end 
 
-  # transfers entire lot between 0-2 days after cleaning to tsc
+  # transfers entire lot between 0-2 days after cleaning to tsc, fantasy
   event :e_transfer_clean, "Transfer" do 
     schedule on_event: :e_laundry, with_delay: rand(0..2)
     process do
@@ -90,7 +100,7 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
     end
   end 
 
-  # tcs inspect lot between 0-3 days after receiving
+  # tcs inspect lot between 0-3 days after receiving, fantasy
   event :e_inspect, "Modify (QI)" do 
     schedule on_event: :e_transfer_clean, :with_delay => rand(0..2) 
     process do
@@ -109,7 +119,7 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
   end  
 
   # every other day, take between 1 and 10 gowns from 
-  # the TSC stock and transfer them to the hospital
+  # the TSC stock and transfer them to the hospital, fantasy
   event :e_transfer_delivery, "Transfer (Delivery)" do 
     schedule cron: 2 
     process do
@@ -122,7 +132,7 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
      end
   end 
 
-  # on delivery add the lot to the in use pool 
+  # on delivery add the lot to the in use pool
   event :e_available, "Produce (increase available gowns)" do 
     schedule on_event: :e_transfer_delivery 
     process do 
