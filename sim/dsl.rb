@@ -20,24 +20,7 @@ def simulation(label, date_start = Date.today, date_end = Date.today + 365)
 
   # show internal state after setup
   puts "--- SETUP ---"
-  puts "RESOURCES"
-  puts $resources
-  puts "LOTS"
-  puts $lots
-  puts "POOLS"
-  $pools.keys.each do |key|
-    puts "#{key}: #{$pools[key][:items].count} (#{$pools[key][:agent_key]})"
-  end
-  puts "INVENTORIES"
-  $inventories.keys.each do |key|
-    puts "#{key}: #{$inventories[key][:items].count} (#{$inventories[key][:agent_key]})"
-  end
-  puts "AGENTS"
-  puts $agents
-  puts "EVENTS"
-  #pp $planned_events
-  #puts $processes
-
+  print_state  
   puts "--- RUN SIMULATION ---"
   $nr_of_days.times do  |index|
     day = date_start + index #no events planned
@@ -48,6 +31,23 @@ def simulation(label, date_start = Date.today, date_end = Date.today + 365)
       $processes[event_key].call
       sleep 0.1 #delay not to go to fast
     end
+  end
+  puts "--- AFTER ---"
+  print_state
+end
+
+def print_state
+  puts "LOTS"
+  $lots.keys.each do |key|
+    puts "#{key}: #{$lots[key][:items].count} "
+  end
+  puts "POOLS"
+  $pools.keys.each do |key|
+    puts "#{key}: #{$pools[key][:items].count} (#{$pools[key][:agent_key]})"
+  end
+  puts "INVENTORIES"
+  $inventories.keys.each do |key|
+    puts "#{key}: #{$inventories[key][:items].count} (#{$inventories[key][:agent_key]})"
   end
 end
 
@@ -222,12 +222,12 @@ end
 
 def action_use_batch(items)
   performer = $context[:process_performer]
-  puts "graphql call USE by #{performer} on #{items.count} items" 
+  puts "graphql USE by #{performer} on #{items.count} items" 
 end
 
 def action_modify_batch(label, items)
   performer = $context[:process_performer]
-  puts "graphql call MODIFY #{label} by #{performer} on #{items.count} items" 
+  puts "graphql MODIFY #{label} by #{performer} on #{items.count} items" 
 end
 
 # perform a consume verb, if a fraction is specified operate on part of the batch, 
