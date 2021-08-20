@@ -136,7 +136,9 @@ def schedule(args)
     delay = args[:with_delay] if(args[:with_delay] != nil)
     $nr_of_days.times do |day_nr|
       if ($planned_events[day_nr].include? trigger_event_key)
-        $planned_events[day_nr + delay] << event_key
+        if(day_nr + delay < $planned_events.count)
+          $planned_events[day_nr + delay] << event_key
+        end
       end
     end
   end

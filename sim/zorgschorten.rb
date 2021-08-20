@@ -81,14 +81,14 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
     end
   end 
 
-  # # transfers entire lot between 0-2 days after cleaning to tsc
-  # event :e_transfer_clean, "Transfer" do 
-  #   schedule :on => :e_laundry, :with_delay => rand(0..2)  do
-  #     role :a_launderer, Role::Provider 
-  #     role :a_tsc, Role::Receiver 
-  #     transfer :gown_clean
-  #   end
-  # end 
+  # transfers entire lot between 0-2 days after cleaning to tsc
+  event :e_transfer_clean, "Transfer" do 
+    schedule on_event: :e_laundry, with_delay: rand(0..2)
+    process do
+      as_performer :a_launderer
+      action_transfer :gown_clean, :a_launderer, :a_tsc #transfer the batched gowns in reflow_os 
+    end
+  end 
 
   # # tcs inspect lot between 0-3 days after receiving
   # event :e_inspect, "Modify (QI)" do 
