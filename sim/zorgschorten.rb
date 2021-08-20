@@ -19,7 +19,6 @@ require 'securerandom'
 #
 simulation("Zorgschorten", Date.today, Date.today + 30) do 
 
-  # gowns in use in the hospital 
   resource :gown, "Gown" do
     rid = SecureRandom.uuid
     # this id is not the reflow os id, but the id used by cleanlease to track the invidual gown
@@ -114,7 +113,7 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
       
       action_consume :gown_clean
       action_produce_batch passed  #add all passed items to the inventory
-      inventory_put passed, :gown_stock
+      inventory_put passed, :gown_stock #should raise level
     end
   end  
 
@@ -124,7 +123,7 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
     schedule cron: 2 
     process do
       as_performer :a_tsc
-      batch = inventory_take :gown_stock, rand(1..10)
+      batch = inventory_take :gown_stock, rand(1..10) #should lower level
       action_consume_batch batch #consume in reflow os 
       lot_put :gown_ready_for_use, batch
       action_produce_lot :gown_ready_for_use # produce a lot in reflow os
