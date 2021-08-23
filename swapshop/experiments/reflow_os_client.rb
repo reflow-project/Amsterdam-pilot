@@ -22,7 +22,7 @@ module ReflowOS
       Schema = GraphQL::Client.load_schema("schema.json")
     else
       Schema = GraphQL::Client.load_schema(HTTP)
-      GraphQL::Client.dump_schema(adapter, "schema.json")
+      GraphQL::Client.dump_schema(HTTP, "schema.json")
     end
 
     Client = GraphQL::Client.new(schema: Schema, execute: HTTP)
