@@ -122,7 +122,7 @@ def pool(key, label, resource_key, amount = 0)
           resource_label, 
           item[:tracking_id], 
           agent[:location],
-          "seed gown pool for #{$context[:agent_key]} - #{$context[:date]}",
+          "seed pool for #{$context[:agent_key]} - #{$context[:date]}",
           item[:description])
         
         puts item
