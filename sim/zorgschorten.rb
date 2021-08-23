@@ -1,6 +1,5 @@
 require_relative 'dsl.rb'
 require 'securerandom'
-
 # use / clean cycle only for now
 # 
 # only thirty days for dev purposes
@@ -36,6 +35,7 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
   # Either i can make more than one agent with one user account, or each agent is tied to a user account
   # Should be able to generate (fake) user accounts through graphql
   agent :a_hospital, "OLVG" do
+      authenticate "AGENT_OLVG_EMAIL", "AGENT_OLVG_PASSWORD"
       pool :gown_in_use, "Gown Lot (in use)", :gown, rand(400..500) # gowns in use in the hospital 
       pool :gown_dirty_pool, "Gown (dirty)", :gown # gowns in the hamper in the hospital, defaults to zero
       # should be populated in reflow os at seed time with a produce?
@@ -44,13 +44,16 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
  
   # Clean Lease
   agent :a_tsc, "Clean Lease Service" do 
+      authenticate "AGENT_CLS_EMAIL", "AGENT_CLS_PASSWORD"
       inventory :gown_stock, "Gown (in stock)", :gown, rand(800..1000) # in stock in the tsc
       # should be populated in reflow os at seed time with a produce?
   end
 
   #this agent is considered 'jit', and only deals with lots
   # Clean Lease
-  agent :a_launderer, "Clean Lease Laundry Service"
+  agent :a_launderer, "Clean Lease Laundry Service" do
+      authenticate "AGENT_CLC_EMAIL", "AGENT_CLC_PASSWORD"
+  end
   # on delivery add the lot to the in use pool 
   
   # every day between 5 and 10 in use gowns are put in the hamper (wild guessing)

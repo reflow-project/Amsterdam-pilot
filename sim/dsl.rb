@@ -1,4 +1,6 @@
 require 'date'
+require 'dotenv/load'
+require_relative 'reflow_os_client.rb'
 
 #dsl for generating value flow simulation 
 # this simulation first generate all the necessary operations in a setup phase and a timetable
@@ -6,6 +8,8 @@ require 'date'
 
 def simulation(label, date_start = Date.today, date_end = Date.today + 365)
   puts "#{date_start} -> #{date_end}"
+  $client = ReflowOSClient.new
+
   $planned_events = [] #array of days, each do contains array of event keys to process on that day
   $nr_of_days = (date_end - date_start).to_i
   $nr_of_days.times do  |index|
@@ -32,6 +36,10 @@ def simulation(label, date_start = Date.today, date_end = Date.today + 365)
 end
 
 def print_state
+  puts "AGENTS"
+  $agents.keys.each do |key|
+    puts "#{key}: #{$agents[key]} "
+  end
   puts "LOTS"
   $lots.keys.each do |key|
     puts "#{key}: #{$lots[key][:items].count} "
@@ -53,6 +61,17 @@ def agent(key, label)
   $agents[key] = {:label => label}
   $context[:agent_key] = key #used as context for block 
   yield if block_given?
+end
+
+# check credentials and login as an agent,
+# using credentials from enviroment
+def authenticate(email_key, pw_key)
+  Dotenv.require_keys(email_key, pw_key)  
+  key = $context[:agent_key]
+  token = $client.login(ENV[email_key],ENV[pw_key])
+  $agents[key][:token] = token # save for reuse
+  agent_id = $client.me(token)
+  $agents[key][:agent_id] = agent_id #TODO use the myagent call instead
 end
 
 # setup a resource type e.g. gown, 
