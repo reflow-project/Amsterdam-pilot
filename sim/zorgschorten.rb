@@ -18,10 +18,15 @@ require 'securerandom'
 #
 simulation("Zorgschorten", Date.today, Date.today + 30) do 
 
+  # base data that needs to be present in ENV: 
+  #
+  # - unit om:2 => ENV[UNIT_OM2]
+  # - authentication for each agent ENV[AGENT_OLVG_EMAIL] etc
+  # - location for each agent ENV[AGENT_OLVG_LOCATION] etc, to be passed during setup 
   resource :gown, "Gown" do
     rid = SecureRandom.uuid
     # this id is not the reflow os id, but the id used by cleanlease to track the invidual gown
-    {:rid => "http://cleanlease.nl/zs/#{rid}", :description => "Clean Lease Schort: #{rid}"}
+    {:tracking_id => "http://cleanlease.nl/zs/#{rid}", :description => "Clean Lease Schort: #{rid}"}
   end
 
   # a lot might acutally have it's own id (and a list of included items as description) but for now we assumen they are anonymous batches (they do get their own id in reflow os though)
@@ -36,6 +41,7 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
   # Should be able to generate (fake) user accounts through graphql
   agent :a_hospital, "OLVG" do
       authenticate "AGENT_OLVG_EMAIL", "AGENT_OLVG_PASSWORD"
+      location "AGENT_OLVG_LOCATION"
       pool :gown_in_use, "Gown Lot (in use)", :gown, rand(400..500) # gowns in use in the hospital 
       pool :gown_dirty_pool, "Gown (dirty)", :gown # gowns in the hamper in the hospital, defaults to zero
       # should be populated in reflow os at seed time with a produce?
@@ -45,6 +51,7 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
   # Clean Lease
   agent :a_tsc, "Clean Lease Service" do 
       authenticate "AGENT_CLS_EMAIL", "AGENT_CLS_PASSWORD"
+      location "AGENT_CLS_LOCATION"
       inventory :gown_stock, "Gown (in stock)", :gown, rand(800..1000) # in stock in the tsc
       # should be populated in reflow os at seed time with a produce?
   end
@@ -53,6 +60,7 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
   # Clean Lease
   agent :a_launderer, "Clean Lease Laundry Service" do
       authenticate "AGENT_CLC_EMAIL", "AGENT_CLC_PASSWORD"
+      location "AGENT_CLC_LOCATION"
   end
   # on delivery add the lot to the in use pool 
   

@@ -8,6 +8,7 @@ require_relative 'reflow_os_client.rb'
 
 def simulation(label, date_start = Date.today, date_end = Date.today + 365)
   puts "#{date_start} -> #{date_end}"
+  $context = {:date => date_start} #clean the context for every call
   $client = ReflowOSClient.new
 
   $planned_events = [] #array of days, each do contains array of event keys to process on that day
@@ -26,7 +27,7 @@ def simulation(label, date_start = Date.today, date_end = Date.today + 365)
     $planned_events[index].each do |event_key|
       puts "#{day}: processing event: #{event_key}"
       #execute the process
-      $context = {} #clean the context for every call
+      $context = {:date => day} #clean the context for every call
       $processes[event_key].call
       sleep 0.1 #delay not to go to fast
     end
@@ -55,7 +56,6 @@ def print_state
 end
 
 # setup an agent
-$context = {}
 $agents = Hash.new
 def agent(key, label)
   $agents[key] = {:label => label}
@@ -72,6 +72,13 @@ def authenticate(email_key, pw_key)
   $agents[key][:token] = token # save for reuse
   agent_id = $client.me(token)
   $agents[key][:agent_id] = agent_id #TODO use the myagent call instead
+end
+
+def location(location_key)
+  Dotenv.require_keys(location_key)  
+  key = $context[:agent_key]
+  location = ENV[location_key]
+  $agents[key][:location] = location # save for reuse
 end
 
 # setup a resource type e.g. gown, 
@@ -102,12 +109,29 @@ def pool(key, label, resource_key, amount = 0)
   if(amount > 0)
       amount.times do 
         item = $resources[resource_key][:generator].call
+        resource_label = $resources[resource_key][:label]
+
+        # first time should produce
+        agent = $agents[$context[:agent_key]]
+        date = $context[:date]
+
+        #create the item in reflow os and save the id for future reference
+        item[:id] = $client.produce_one(
+          agent[:token], 
+          agent[:agent_id], 
+          resource_label, 
+          item[:tracking_id], 
+          agent[:location],
+          "seed gown pool for #{$context[:agent_key]} - #{$context[:date]}",
+          item[:description])
+        
+        puts item
         items << item
       end
   end
   $pools[key] = {:label => label, :resource_key => resource_key, :items => items, :agent_key => $context[:agent_key] }
-  #first time should produce
-end
+  
+  end
 
 # a collection of resources that we want to keep track of in the simulation AND in reflow os 
 $inventories = Hash.new
