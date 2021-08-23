@@ -106,6 +106,7 @@ class ReflowOSClient
   # location_id should exist in reflow os
   # event_note says something about the event, let's include the simulated date here
   # res_note says something about the resource
+  # TODO check if we should relate this one gown to a 'stock' resource
   def produce_one(token, agent_id, name, tracking_identifier, location_id, event_note, res_note) 
     variables = {
       event: {
@@ -114,7 +115,7 @@ class ReflowOSClient
         provider: agent_id,
         receiver: agent_id,
         resourceQuantity: {
-          "hasUnit": ENV["UNIT_OM2"], 
+          "hasUnit": ENV["UNIT_OM2"], #maybe this unit should come from simulation?
           "hasNumericalValue": 1
         }
       },
@@ -128,7 +129,9 @@ class ReflowOSClient
     }
     performEvent(token, variables)
   end
-
+  # TODO produce a lot
+  #
+ 
   # TODO create / check for unit with label om2:one
   # 01FDSJXTEB1KHRQ4D3Q95WS95C in dev db
   
