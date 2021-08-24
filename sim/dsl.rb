@@ -118,6 +118,7 @@ def pool(key, label, resource_key, amount = 0)
         date = $context[:date]
 
         #create the item in reflow os and save the id for future reference
+        # puts "seeding pool item as #{$context[:agent_key]}"
         item[:id] = $client.produce_one(
           agent[:token], 
           agent[:agent_id], 
@@ -127,8 +128,8 @@ def pool(key, label, resource_key, amount = 0)
           "seed pool for #{$context[:agent_key]} - #{$context[:date]}",
           item[:description],
           date.iso8601)
-        
-        puts item
+        item[:created_by] = $context[:agent_key]
+        item[:created_at_day] = $context[:date].iso8601
         items << item
       end
   end
@@ -174,9 +175,11 @@ def inventory(key, label, resource_key, amount = 0)
           item[:description],
           date.iso8601,
           stock_id)
+ 
+        item[:created_by] = $context[:agent_key]
+        item[:created_at_day] = $context[:date].iso8601
         
-        puts item
-
+        # puts item
         items << item
       end
   end
@@ -324,6 +327,18 @@ end
 def action_consume_batch(items)
   performer = $context[:process_performer]
   puts "graphql CONSUME #{items.count} items by #{performer}"
+  
+  agent = $agents[performer]
+  date = $context[:date]
+
+  # items.each do |item|
+  #   event_id = $client.consume_one(
+  #       agent[:token], 
+  #       agent[:agent_id], 
+  #       item[:id], 
+  #       "consume for #{$context[:process_performer]}",
+  #       date.iso8601)
+  # end
 end
 
 # consume a single resource

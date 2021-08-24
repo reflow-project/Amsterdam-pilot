@@ -32,6 +32,7 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
   # a lot might acutally have it's own id (and a list of included items as description) but for now we assumen they are anonymous batches (they do get their own id in reflow os though)
   # we only have one type of resource in the use cycle, but many collections of them
   #resource collections that have no owner perse, used for transfer
+  # created on demand in Reflow OS as single transient economic resource from a batch of gowns
   lot :gown_dirty_lot, "Gown Lot (dirty)", :gown 
   lot :gown_clean, "Gown Lot (clean)", :gown 
   lot :gown_ready_for_use, "Gown Lot", :gown 
@@ -71,13 +72,13 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
     schedule cron: 1 # every day
     process do 
       batch = pool_take :gown_in_use, rand(5..10) # take is not a verb
+      puts batch
       as_performer :a_hospital # set current agent
       action_use_batch batch # register gowns as used in reflow os
       pool_put batch, :gown_dirty_pool # move the gowns to the dirty pool
     end
   end 
  
-  #### GRAPHQL IMPLEMENTED UNTIL HERE
   
   #
   # every seven days the dirty pool is picked up, fantasy
@@ -87,10 +88,11 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
     process do
       as_performer :a_hospital
       batch = pool_take :gown_dirty_pool # takes all
-      action_consume_batch batch# removes the gowns from the hospital inventory in reflow_os 
+      action_consume_batch batch# removes the gowns from the hospital pool in reflow_os 
  
-      ## TODO FIND OUT how this should work in reflow os
       lot_put :gown_dirty_lot, batch # put the dirty gowns in the dirty lot
+      
+      #### COMMONSPUB GRAPHQL IMPLEMENTED UNTIL HERE
       action_produce_lot :gown_dirty_lot # lot should have own id, containing manifest of each gown in gowns, produced in reflow_os
       action_transfer :gown_dirty_lot, :a_hospital, :a_launderer #transfer the batched gowns in reflow_os 
     end
@@ -103,7 +105,7 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
       as_performer :a_launderer
       batch = lot_take :gown_dirty_lot # takes all items from lot
       action_consume :gown_dirty_lot  #consume current lot in reflow os
-      action_modify_batch "clean", batch # perform the actual cleaning in reflow os
+      action_modify_batch "clean", batch # perform the actual cleaning in reflow os, , assigning the lot id that was the source
       lot_put :gown_clean, batch
       action_produce_lot :gown_clean # produce new lot in reflow os
     end
@@ -124,7 +126,7 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
     process do
       as_performer :a_tsc
       batch = lot_take :gown_clean
-     
+      
       action_modify_batch "inspect", batch #inspects the whole batch
       amount_passed = (batch.count * rand(0.95..1)).to_i # between zero and three items fail the inspection
       passed = batch.take(amount_passed)

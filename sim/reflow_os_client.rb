@@ -66,11 +66,11 @@ module ReflowOS
 
     #define the update query 
     eventTemplate = <<-'GRAPHQL'
-    mutation($event:EconomicEventCreateParams!) {
-      createEconomicEvent(event:$event){
+    mutation($event:EconomicEventCreateParams!, $newInventoriedResource:EconomicResourceCreateParams) {
+      createEconomicEvent(event:$event, newInventoriedResource:$newInventoriedResource){
           economicEvent {
-                  id,
-                  resourceInventoriedAs{
+                  id
+                  resourceInventoriedAs {
                     id
                   }
           }
@@ -132,7 +132,8 @@ class ReflowOSClient
     # relate this resource to a stock if part of stock 
     variables[:newInventoriedResource][:contained_in] = stock_id if stock_id != nil
 
-    performEvent(token, variables)
+    result = performEvent(token, variables)
+    result.resource_inventoried_as.id #return value is created item id
   end
 
   # produce a new empty stock resource 
@@ -162,7 +163,8 @@ class ReflowOSClient
         currentLocation: location_id 
       }
     }
-    performEvent(token, variables)
+    result = performEvent(token, variables)
+    result.resource_inventoried_as.id #return value is created item id
   end
 
   # Use a single resource
@@ -175,13 +177,11 @@ class ReflowOSClient
         provider: agent_id,
         receiver: agent_id,
         hasPointInTime: ts,
-        resourceQuantity: {
-          "hasUnit": ENV["UNIT_OM2"], #maybe this unit should come from simulation?
-          "hasNumericalValue": 0
-        }
+        resourceInventoriedAs: resource_id 
       }
     }
-    performEvent(token, variables)
+    result = performEvent(token, variables)
+    result.id #return value is event id
   end
  
   # TODO produce a lot
@@ -190,8 +190,23 @@ class ReflowOSClient
   # TODO create / check for unit with label om2:one
   # 01FDSJXTEB1KHRQ4D3Q95WS95C in dev db
   
-  # TODO consume a resource 
-  
+  # consume a resource 
+  def consume_one(token, agent_id, resource_id, event_note, ts)
+    variables = {
+      event: {
+        note: event_note,
+        action: "consume",
+        provider: agent_id,
+        receiver: agent_id,
+        hasPointInTime: ts,
+        resourceInventoriedAs: resource_id 
+      }
+    }
+    result = performEvent(token, variables)
+    result.id #return value is event id
+  end
+ 
+
   # TODO transfer a resource
 
   # raise or lower an existing inventoried resource
@@ -210,12 +225,18 @@ class ReflowOSClient
         }
       }
     }
-    performEvent(token, variables)
+    result = performEvent(token, variables)
+    result.id #return value is event id
   end
 
   def performEvent(token, variables)
+    # puts "using: #{token} - #{variables}"
     result = ReflowOS::Client.query(ReflowOS::EventQuery, context: {token: token}, variables: variables)
-    result.data.create_economic_event.economic_event.id
+    if result.data.create_economic_event == nil
+      puts result.original_hash["errors"][0]["message"]
+      byebug
+    end
+    result.data.create_economic_event.economic_event
   end
 
   # query the current inventory level of a resource 
