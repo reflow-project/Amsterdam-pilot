@@ -136,14 +136,14 @@ class ReflowOSClient
     result.resource_inventoried_as.id #return value is created item id
   end
 
-  # produce a new empty stock resource 
+  # produce a new empty container resource (stock / lot)
   # token is bearer token used to perform as_agent
   # agent_id is the agent id that produces the resource
   # name is the name of the resource (what we're making)
   # location_id should exist in reflow os
   # event_note says something about the event, let's include the simulated date here
   # res_note says something about the resource
-  def produce_stock(token, agent_id, name, location_id, event_note, res_note, ts) 
+  def produce_empty_container(token, agent_id, name, location_id, event_note, res_note, ts) 
     variables = {
       event: {
         note: event_note,

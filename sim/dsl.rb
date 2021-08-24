@@ -147,7 +147,7 @@ def inventory(key, label, resource_key, amount = 0)
   agent = $agents[$context[:agent_key]]
   date = $context[:date]
 
-  stock_id = $client.produce_stock(
+  stock_id = $client.produce_empty_container(
           agent[:token], 
           agent[:agent_id], 
           "#{resource_label} Stock", 
@@ -349,9 +349,29 @@ def action_consume(resource_key)
   puts "graphql CONSUME #{resource_key} by #{performer}" 
 end
 
-def action_produce_lot(lot_key)
+def action_produce_lot(lot_key, manifest_items)
   performer = $context[:process_performer] 
   puts "graphql PRODUCE #{lot_key} with #{$lots[lot_key][:items].count} items by #{performer}"
+ 
+  agent = $agents[performer]
+  date = $context[:date]
+  resource_key = $lots[lot_key][:resource_key]
+  resource_label = $resources[resource_key][:label]
+ 
+  #create a lot resource in reflow os, put in the list of tracking id's as the manifest note  
+  manifest = manifest_items.map{|item|item[:tracking_id]}.join(",")
+  puts "manifest: #{manifest}"
+  lot_id = $client.produce_empty_container(
+          agent[:token], 
+          agent[:agent_id], 
+          "#{resource_label} Lot", 
+          agent[:location],
+          "#{resource_label} Lot",
+          "Manifest: #{manifest}",
+          date.iso8601) #returns lot id
+
+  $lots[lot_key][:id] = lot_id
+  puts "Created Reflow OS Lot event: #{lot_id}"
 end
 
 def action_produce_batch(items)
