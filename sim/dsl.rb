@@ -283,6 +283,36 @@ def lot_take(lot_key)
   items
 end
 
+# take resources out of a lot, and recreate effectively unpacking
+def action_lot_unpack(lot_key)
+  resource_key = $lots[lot_key][:resource_key]
+  resource_label = $resources[resource_key][:label]
+  performer = $context[:process_performer]
+  agent = $agents[performer]
+  date = $context[:date]
+
+  packed_items = lot_take(lot_key) 
+  unpacked_items = []
+
+  #recreate as own
+  packed_items.each do |item| 
+    item[:id] = $client.produce_one(
+      agent[:token], 
+      agent[:agent_id], 
+      resource_label, 
+      item[:tracking_id], 
+      agent[:location],
+      "unpacked by #{$context[:process_performer]} - #{$context[:date]}",
+      item[:description],
+      date.iso8601)
+    item[:created_by] = $context[:process_performer]
+    item[:created_at_day] = $context[:date].iso8601
+    unpacked_items << item 
+  end
+  puts "unpacked lot: #{unpacked_items}" 
+  unpacked_items
+end
+
 # add the items to the pool
 def pool_put(items, pool_key)
   $pools[pool_key][:items].concat items

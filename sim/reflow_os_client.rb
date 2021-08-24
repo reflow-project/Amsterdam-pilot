@@ -245,12 +245,14 @@ class ReflowOSClient
     result.id #return value is event id
   end
 
+  Result = Struct.new(:id) #fake a good result TODO: fix this
   def performEvent(token, variables)
     # puts "using: #{token} - #{variables}"
     result = ReflowOS::Client.query(ReflowOS::EventQuery, context: {token: token}, variables: variables)
     if result.data.create_economic_event == nil
-      puts result.original_hash["errors"][0]["message"]
-      byebug
+      puts "REFLOW OS ERROR!!!: #{result.original_hash["errors"][0]["message"]} variables: #{variables}"
+      # byebug
+      return Result.new("_failed_")
     end
     result.data.create_economic_event.economic_event
   end

@@ -102,14 +102,16 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
     process do
       as_performer :a_launderer
       
-      batch = lot_take :gown_dirty_lot # takes all items from lot
-      
       #### COMMONSPUB GRAPHQL IMPLEMENTED UNTIL HERE
+      batch = action_lot_unpack :gown_dirty_lot # takes all items from lot, and recreates as own
+      
       action_consume_lot :gown_dirty_lot  #consume current lot in reflow os
       
       action_modify_batch "clean", batch # perform the actual cleaning in reflow os, , assigning the lot id that was the source
+      
+
       lot_put :gown_clean, batch
-      action_produce_lot :gown_clean # produce new lot in reflow os
+      action_produce_lot :gown_clean, batch # produce new lot in reflow os
     end
   end 
 
@@ -127,7 +129,7 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
     schedule on_event: :e_transfer_clean, :with_delay => rand(0..2) 
     process do
       as_performer :a_tsc
-      batch = lot_take :gown_clean
+      batch = action_lot_unpack :gown_clean
       
       action_modify_batch "inspect", batch #inspects the whole batch
       amount_passed = (batch.count * rand(0.95..1)).to_i # between zero and three items fail the inspection
@@ -159,8 +161,8 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
     schedule on_event: :e_transfer_delivery 
     process do 
       as_performer :a_hospital
-      batch = lot_take :gown_ready_for_use
       action_consume_lot :gown_ready_for_use
+      batch = action_lot_unpack :gown_ready_for_use
       action_produce_batch batch #create the batch items in reflow os
       pool_put(batch, :gown_in_use)
     end
