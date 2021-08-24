@@ -207,7 +207,23 @@ class ReflowOSClient
   end
  
 
-  # TODO transfer a resource
+  # transfer a resource, (also the location)
+  def transfer_lot(token, provider_id, receiver_id, lot_id, event_note, ts)
+    variables = {
+      event: {
+        note: event_note,
+        action: "transfer",
+        provider: provider_id,
+        receiver: receiver_id,
+        hasPointInTime: ts,
+        resourceInventoriedAs: lot_id 
+      }
+    }
+    #TODO do we need to specify the new location somewhere or is this automatic?
+    
+    result = performEvent(token, variables)
+    result.id #return value is event id
+  end
 
   # raise or lower an existing inventoried resource
   # used by swap shop

@@ -94,9 +94,10 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
       action_consume_batch batch # removes the gowns from the hospital pool in reflow_os 
       lot_put :gown_dirty_lot, batch # put the dirty gowns in the dirty lot
       
-      #### COMMONSPUB GRAPHQL IMPLEMENTED UNTIL HERE
       action_produce_lot :gown_dirty_lot, batch # lot should have own id, containing manifest of each gown in gowns, produced in reflow_os
-      action_transfer :gown_dirty_lot, :a_hospital, :a_launderer #transfer the batched gowns in reflow_os 
+
+      #### COMMONSPUB GRAPHQL IMPLEMENTED UNTIL HERE
+      action_transfer_lot :gown_dirty_lot, :a_hospital, :a_launderer #transfer the batched gowns in reflow_os 
     end
   end 
 
@@ -118,7 +119,7 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
     schedule on_event: :e_laundry, with_delay: rand(0..2)
     process do
       as_performer :a_launderer
-      action_transfer :gown_clean, :a_launderer, :a_tsc #transfer the batched gowns in reflow_os 
+      action_transfer_lot :gown_clean, :a_launderer, :a_tsc #transfer the batched gowns in reflow_os 
     end
   end 
 
@@ -150,7 +151,7 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
       action_consume_batch batch #consume in reflow os 
       lot_put :gown_ready_for_use, batch
       action_produce_lot :gown_ready_for_use, batch # produce a lot in reflow os
-      action_transfer :gown_ready_for_use, :a_tsc, :a_hospital # transfer lot
+      action_transfer_lot :gown_ready_for_use, :a_tsc, :a_hospital # transfer lot
      end
   end 
 

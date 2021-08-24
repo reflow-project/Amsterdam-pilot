@@ -379,15 +379,26 @@ def action_produce_batch(items)
   puts "graphql PRODUCE #{items.count} items by #{performer}"
 end
 
-def action_transfer(resource_key, provider, receiver, fraction = 1.0)
-  # we set the default amount to be everything in the set at the moment
-  amount = current_amount(resource_key) 
-  
-  #unless there is an explicit amount specified in the context
-  if($context[:process_amount])
-    amount = fraction * $context[:process_amount]
-  end
+def action_transfer_lot(lot_key, provider, receiver)
+ 
+  provider = $agents[provider]
+  receiver = $agents[receiver]
+  date = $context[:date]
 
-  puts "graphql TRANSFER of #{resource_key} with #{amount} items from #{provider} to #{receiver}"
-  #nothing special needs to be taken into acount
+  resource_key = $lots[lot_key][:resource_key]
+  resource_label = $resources[resource_key][:label]
+  lot_id = $lots[lot_key][:id]
+  
+  puts "graphql TRANSFER of #{resource_key} Lot from #{provider} to #{receiver}"
+ 
+  #transfer from provider to receiver (by provider)
+  event_id = $client.transfer_lot(
+    provider[:token],
+    provider[:agent_id],
+    receiver[:agent_id],
+    lot_id,
+    "#{resource_label} Lot Transfer",
+    date.iso8601) 
+
+    puts "Created Reflow OS TRANSFER event: #{event_id}"
 end
