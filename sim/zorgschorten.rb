@@ -102,9 +102,10 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
     process do
       as_performer :a_launderer
       
-      #### COMMONSPUB GRAPHQL IMPLEMENTED UNTIL HERE
       batch = action_lot_unpack :gown_dirty_lot # takes all items from lot, and recreates as own
       
+      #### COMMONSPUB GRAPHQL IMPLEMENTED UNTIL HERE
+      # consume of the transfered lot fails somehow.. this not expected!
       action_consume_lot :gown_dirty_lot  #consume current lot in reflow os
       
       action_modify_batch "clean", batch # perform the actual cleaning in reflow os, , assigning the lot id that was the source
