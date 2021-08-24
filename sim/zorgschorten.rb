@@ -42,7 +42,8 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
   agent :a_hospital, "OLVG" do
       authenticate "AGENT_OLVG_EMAIL", "AGENT_OLVG_PASSWORD"
       location "AGENT_OLVG_LOCATION"
-      pool :gown_in_use, "Gown Lot (in use)", :gown, rand(400..500) # gowns in use in the hospital 
+      #pool :gown_in_use, "Gown Lot (in use)", :gown, rand(400..500) # gowns in use in the hospital 
+      pool :gown_in_use, "Gown Lot (in use)", :gown, 10 # gowns in use in the hospital 
       pool :gown_dirty_pool, "Gown (dirty)", :gown # gowns in the hamper in the hospital, defaults to zero
       # should be populated in reflow os at seed time with a produce?
       # or maybe a produce by tsc and and immediate transfer, 
@@ -52,7 +53,8 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
   agent :a_tsc, "Clean Lease Service" do 
       authenticate "AGENT_CLS_EMAIL", "AGENT_CLS_PASSWORD"
       location "AGENT_CLS_LOCATION"
-      inventory :gown_stock, "Gown (in stock)", :gown, rand(800..1000) # in stock in the tsc
+      #inventory :gown_stock, "Gown (in stock)", :gown, rand(800..1000) # in stock in the tsc
+      inventory :gown_stock, "Gown (in stock)", :gown, 20 # in stock in the tsc
       # should be populated in reflow os at seed time with a produce?
   end
 

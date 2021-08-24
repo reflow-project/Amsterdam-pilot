@@ -8,7 +8,8 @@ require_relative 'reflow_os_client.rb'
 
 def simulation(label, date_start = Date.today, date_end = Date.today + 365)
   puts "#{date_start} -> #{date_end}"
-  $context = {:date => date_start} #clean the context for every call
+  ts = date_start.to_time.to_datetime
+  $context = {:date => ts} #clean the context for every call
   $client = ReflowOSClient.new
 
   $planned_events = [] #array of days, each do contains array of event keys to process on that day
@@ -27,7 +28,8 @@ def simulation(label, date_start = Date.today, date_end = Date.today + 365)
     $planned_events[index].each do |event_key|
       puts "#{day}: processing event: #{event_key}"
       #execute the process
-      $context = {:date => day} #clean the context for every call
+      ts = day.to_time.to_datetime
+      $context = {:date => ts} #clean the context for every call
       $processes[event_key].call
       sleep 0.1 #delay not to go to fast
     end
@@ -123,7 +125,8 @@ def pool(key, label, resource_key, amount = 0)
           item[:tracking_id], 
           agent[:location],
           "seed pool for #{$context[:agent_key]} - #{$context[:date]}",
-          item[:description])
+          item[:description],
+          date.iso8601)
         
         puts item
         items << item
@@ -149,7 +152,8 @@ def inventory(key, label, resource_key, amount = 0)
           "#{resource_label} Stock", 
           agent[:location],
           "seed event for stock resource #{$context[:agent_key]} - #{$context[:date]}",
-          "#{resource_label} Stock")
+          "#{resource_label} Stock",
+          date.iso8601)
 
   items = []
  
@@ -168,6 +172,7 @@ def inventory(key, label, resource_key, amount = 0)
           agent[:location],
           "seed pool for #{$context[:agent_key]} - #{$context[:date]}",
           item[:description],
+          date.iso8601,
           stock_id)
         
         puts item
@@ -293,7 +298,20 @@ end
 # all actions will perform graphql calls
 def action_use_batch(items)
   performer = $context[:process_performer]
+  agent = $agents[performer]
+  date = $context[:date]
+
   puts "graphql USE by #{performer} on #{items.count} items" 
+  
+  items.each do |item|
+    event_id = $client.use_one(
+        agent[:token], 
+        agent[:agent_id], 
+        item[:id], 
+        "use event (dirty) for #{$context[:process_performer]}",
+        date.iso8601)
+    puts "Created Reflow OS Use event: #{event_id}"
+  end
 end
 
 def action_modify_batch(label, items)

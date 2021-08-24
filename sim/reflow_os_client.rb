@@ -1,6 +1,7 @@
 # graphql client for reflowos running on localhost
 require "graphql/client"
 require "graphql/client/http"
+require "byebug"
 
 module ReflowOS
 
@@ -106,13 +107,14 @@ class ReflowOSClient
   # location_id should exist in reflow os
   # event_note says something about the event, let's include the simulated date here
   # res_note says something about the resource
-  def produce_one(token, agent_id, name, tracking_identifier, location_id, event_note, res_note, stock_id = nil) 
+  def produce_one(token, agent_id, name, tracking_identifier, location_id, event_note, res_note, ts, stock_id = nil) 
     variables = {
       event: {
         note: event_note,
         action: "produce",
         provider: agent_id,
         receiver: agent_id,
+        hasPointInTime: ts,
         resourceQuantity: {
           "hasUnit": ENV["UNIT_OM2"], #maybe this unit should come from simulation?
           "hasNumericalValue": 1
@@ -140,10 +142,11 @@ class ReflowOSClient
   # location_id should exist in reflow os
   # event_note says something about the event, let's include the simulated date here
   # res_note says something about the resource
-  def produce_stock(token, agent_id, name, location_id, event_note, res_note) 
+  def produce_stock(token, agent_id, name, location_id, event_note, res_note, ts) 
     variables = {
       event: {
         note: event_note,
+        hasPointInTime: ts,
         action: "produce",
         provider: agent_id,
         receiver: agent_id,
@@ -162,6 +165,25 @@ class ReflowOSClient
     performEvent(token, variables)
   end
 
+  # Use a single resource
+  # Does nothing to the resource except log an event
+  def use_one(token, agent_id, resource_id, event_note, ts)
+    variables = {
+      event: {
+        note: event_note,
+        action: "use",
+        provider: agent_id,
+        receiver: agent_id,
+        hasPointInTime: ts,
+        resourceQuantity: {
+          "hasUnit": ENV["UNIT_OM2"], #maybe this unit should come from simulation?
+          "hasNumericalValue": 0
+        }
+      }
+    }
+    performEvent(token, variables)
+  end
+ 
   # TODO produce a lot
   #
  
