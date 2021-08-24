@@ -75,9 +75,6 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
       puts batch
       as_performer :a_hospital # set current agent
       action_use_batch batch # register gowns as used in reflow os
-      # NB now sometimes reflow os correctly says we're not authorized to use
-      # => you can see in the output that there are gowns from the tsc stock
-      # this is because the transfer is not implemented yet!
       pool_put batch, :gown_dirty_pool # move the gowns to the dirty pool
     end
   end 
@@ -95,8 +92,6 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
       lot_put :gown_dirty_lot, batch # put the dirty gowns in the dirty lot
       
       action_produce_lot :gown_dirty_lot, batch # lot should have own id, containing manifest of each gown in gowns, produced in reflow_os
-
-      #### COMMONSPUB GRAPHQL IMPLEMENTED UNTIL HERE
       action_transfer_lot :gown_dirty_lot, :a_hospital, :a_launderer #transfer the batched gowns in reflow_os 
     end
   end 
@@ -106,8 +101,12 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
     schedule on_event: :e_transfer_pickup, with_delay: 1 
     process do
       as_performer :a_launderer
+      
       batch = lot_take :gown_dirty_lot # takes all items from lot
-      action_consume :gown_dirty_lot  #consume current lot in reflow os
+      
+      #### COMMONSPUB GRAPHQL IMPLEMENTED UNTIL HERE
+      action_consume_lot :gown_dirty_lot  #consume current lot in reflow os
+      
       action_modify_batch "clean", batch # perform the actual cleaning in reflow os, , assigning the lot id that was the source
       lot_put :gown_clean, batch
       action_produce_lot :gown_clean # produce new lot in reflow os
@@ -135,7 +134,7 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
       passed = batch.take(amount_passed)
       failed = batch.drop(amount_passed)
       
-      action_consume :gown_clean
+      action_consume_lot :gown_clean
       action_produce_batch passed  #add all passed items to the inventory
       inventory_put passed, :gown_stock #should raise level
     end
@@ -161,7 +160,7 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
     process do 
       as_performer :a_hospital
       batch = lot_take :gown_ready_for_use
-      action_consume :gown_ready_for_use
+      action_consume_lot :gown_ready_for_use
       action_produce_batch batch #create the batch items in reflow os
       pool_put(batch, :gown_in_use)
     end

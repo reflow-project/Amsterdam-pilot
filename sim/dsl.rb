@@ -343,10 +343,23 @@ def action_consume_batch(items)
   end
 end
 
-# consume a single resource
-def action_consume(resource_key)
+# consume a single lot resource
+def action_consume_lot(lot_key)
   performer = $context[:process_performer]
+  date = $context[:date]
+  agent = $agents[performer]
+  resource_key = $lots[lot_key][:resource_key]
+  
   puts "graphql CONSUME #{resource_key} by #{performer}" 
+  item = $lots[lot_key]
+  event_id = $client.consume_one(
+        agent[:token], 
+        agent[:agent_id], 
+        item[:id], 
+        "consume lot by #{$context[:process_performer]}",
+        date.iso8601)
+
+  puts "Created Reflow OS Consume lot event: #{event_id}"
 end
 
 def action_produce_lot(lot_key, manifest_items)
