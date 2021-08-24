@@ -137,15 +137,46 @@ def pool(key, label, resource_key, amount = 0)
 $inventories = Hash.new
 def inventory(key, label, resource_key, amount = 0)
   raise "resource not found: #{type}" if not $resources.key? resource_key 
+
+  resource_label = $resources[resource_key][:label]
+  # first time should produce
+  agent = $agents[$context[:agent_key]]
+  date = $context[:date]
+
+  stock_id = $client.produce_stock(
+          agent[:token], 
+          agent[:agent_id], 
+          "#{resource_label} Stock", 
+          agent[:location],
+          "seed event for stock resource #{$context[:agent_key]} - #{$context[:date]}",
+          "#{resource_label} Stock")
+
   items = []
+ 
   # generate the initial items 
   if(amount > 0)
       amount.times do 
         item = $resources[resource_key][:generator].call
+        
+        # create the item in reflow os and save the id for future reference
+        # and place them in stock
+        item[:id] = $client.produce_one(
+          agent[:token], 
+          agent[:agent_id], 
+          resource_label, 
+          item[:tracking_id], 
+          agent[:location],
+          "seed pool for #{$context[:agent_key]} - #{$context[:date]}",
+          item[:description],
+          stock_id)
+        
+        puts item
+
         items << item
       end
   end
-  $inventories[key] = {:label => label, :resource_key => resource_key, :items => items, :agent_key => $context[:agent_key] }
+  
+  $inventories[key] = {:label => label, :resource_key => resource_key, :items => items, :agent_key => $context[:agent_key], :stock_id => stock_id }
 end
 
 $events = Hash.new

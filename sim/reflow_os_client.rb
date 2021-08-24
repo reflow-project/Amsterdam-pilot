@@ -106,8 +106,7 @@ class ReflowOSClient
   # location_id should exist in reflow os
   # event_note says something about the event, let's include the simulated date here
   # res_note says something about the resource
-  # TODO check if we should relate this one gown to a 'stock' resource
-  def produce_one(token, agent_id, name, tracking_identifier, location_id, event_note, res_note) 
+  def produce_one(token, agent_id, name, tracking_identifier, location_id, event_note, res_note, stock_id = nil) 
     variables = {
       event: {
         note: event_note,
@@ -127,8 +126,42 @@ class ReflowOSClient
         currentLocation: location_id 
       }
     }
+
+    # relate this resource to a stock if part of stock 
+    variables[:newInventoriedResource][:contained_in] = stock_id if stock_id != nil
+
     performEvent(token, variables)
   end
+
+  # produce a new empty stock resource 
+  # token is bearer token used to perform as_agent
+  # agent_id is the agent id that produces the resource
+  # name is the name of the resource (what we're making)
+  # location_id should exist in reflow os
+  # event_note says something about the event, let's include the simulated date here
+  # res_note says something about the resource
+  def produce_stock(token, agent_id, name, location_id, event_note, res_note) 
+    variables = {
+      event: {
+        note: event_note,
+        action: "produce",
+        provider: agent_id,
+        receiver: agent_id,
+        resourceQuantity: {
+          "hasUnit": ENV["UNIT_OM2"], #maybe this unit should come from simulation?
+          "hasNumericalValue": 0
+        }
+      },
+      newInventoriedResource: { 
+        name: name,
+        tags: [],
+        note: res_note,
+        currentLocation: location_id 
+      }
+    }
+    performEvent(token, variables)
+  end
+
   # TODO produce a lot
   #
  
