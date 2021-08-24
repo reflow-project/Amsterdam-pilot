@@ -76,15 +76,21 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
       pool_put batch, :gown_dirty_pool # move the gowns to the dirty pool
     end
   end 
-
+ 
+  #### GRAPHQL IMPLEMENTED UNTIL HERE
+  
+  #
   # every seven days the dirty pool is picked up, fantasy
+  #
   event :e_transfer_pickup, "pickup" do 
     schedule cron: 7  # every week 
     process do
       as_performer :a_hospital
       batch = pool_take :gown_dirty_pool # takes all
       action_consume_batch batch# removes the gowns from the hospital inventory in reflow_os 
-      lot_put :gown_dirty_lot, batch #put the dirty gowns in the dirty lot
+ 
+      ## TODO FIND OUT how this should work in reflow os
+      lot_put :gown_dirty_lot, batch # put the dirty gowns in the dirty lot
       action_produce_lot :gown_dirty_lot # lot should have own id, containing manifest of each gown in gowns, produced in reflow_os
       action_transfer :gown_dirty_lot, :a_hospital, :a_launderer #transfer the batched gowns in reflow_os 
     end
