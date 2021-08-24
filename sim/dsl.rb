@@ -331,14 +331,16 @@ def action_consume_batch(items)
   agent = $agents[performer]
   date = $context[:date]
 
-  # items.each do |item|
-  #   event_id = $client.consume_one(
-  #       agent[:token], 
-  #       agent[:agent_id], 
-  #       item[:id], 
-  #       "consume for #{$context[:process_performer]}",
-  #       date.iso8601)
-  # end
+  items.each do |item|
+    event_id = $client.consume_one(
+        agent[:token], 
+        agent[:agent_id], 
+        item[:id], 
+        "consume for #{$context[:process_performer]}",
+        date.iso8601)
+
+    puts "Created Reflow OS Consume event: #{event_id}"
+  end
 end
 
 # consume a single resource

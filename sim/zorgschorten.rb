@@ -75,6 +75,9 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
       puts batch
       as_performer :a_hospital # set current agent
       action_use_batch batch # register gowns as used in reflow os
+      # NB now sometimes reflow os correctly says we're not authorized to use
+      # => you can see in the output that there are gowns from the tsc stock
+      # this is because the transfer is not implemented yet!
       pool_put batch, :gown_dirty_pool # move the gowns to the dirty pool
     end
   end 
@@ -88,7 +91,7 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
     process do
       as_performer :a_hospital
       batch = pool_take :gown_dirty_pool # takes all
-      action_consume_batch batch# removes the gowns from the hospital pool in reflow_os 
+      action_consume_batch batch # removes the gowns from the hospital pool in reflow_os 
  
       lot_put :gown_dirty_lot, batch # put the dirty gowns in the dirty lot
       
