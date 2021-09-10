@@ -216,7 +216,11 @@ class ReflowOSClient
         provider: provider_id,
         receiver: receiver_id,
         hasPointInTime: ts,
-        resourceInventoriedAs: lot_id 
+        resourceInventoriedAs: lot_id,
+        resourceQuantity: {
+          hasNumericalValue: 1,
+          hasUnit: ENV["UNIT_OM2"], #maybe this unit should come from simulation?
+        }
       }
     }
     #TODO do we need to specify the new location somewhere or is this automatic?
