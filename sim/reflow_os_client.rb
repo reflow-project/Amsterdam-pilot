@@ -6,7 +6,7 @@ require "byebug"
 module ReflowOS
 
     # setup graphql client
-    HTTP = GraphQL::Client::HTTP.new("http://localhost:4009/api/graphql") do
+    HTTP = GraphQL::Client::HTTP.new("http://localhost:4000/api/graphql") do
       def headers(context)
         headers = {}
         headers["User-Agent"] = "Simulation Client"
@@ -28,7 +28,7 @@ module ReflowOS
 
     loginTemplate = <<-'GRAPHQL'
     mutation($email: String!, $password: String!) {
-        createSession(email: $email, password: $password) {
+        login(emailOrUsername: $email, password: $password) {
           token 
         }
     }
@@ -38,19 +38,12 @@ module ReflowOS
     # define me query
     #
     meTemplate = <<-'GRAPHQL'
-    {me {
-      email
-      isConfirmed
-      isInstanceAdmin
-      user {
+    query{
+      myAgent{
         id
-        icon
-        image
-        name
-        preferredUsername
       }
-    }}
-    GRAPHQL
+    }
+        GRAPHQL
     MeQuery = ReflowOS::Client.parse(meTemplate) 
 
     getResourceTemplate = <<-'GRAPHQL'
@@ -90,13 +83,13 @@ class ReflowOSClient
       password: password
     }
     result = ReflowOS::Client.query(ReflowOS::LoginQuery, variables: variables)
-    result.data.create_session.token #bearer token
+    result.data.login.token #bearer token
   end
 
   # get details of logged in user (e.g. agent id)
   def me(token)
     result = ReflowOS::Client.query(ReflowOS::MeQuery, context: {token: token}) 
-    result.data.me.user.id
+    result.data.my_agent.id
   end
 
   # produce one resource 
@@ -217,10 +210,10 @@ class ReflowOSClient
         receiver: receiver_id,
         hasPointInTime: ts,
         resourceInventoriedAs: lot_id,
-        resourceQuantity: {
-          hasNumericalValue: 1,
-          hasUnit: ENV["UNIT_OM2"], #maybe this unit should come from simulation?
-        }
+        # resourceQuantity: {
+        #   hasNumericalValue: 1,
+        #   hasUnit: ENV["UNIT_OM2"], #maybe this unit should come from simulation?
+        # }
       }
     }
     #TODO do we need to specify the new location somewhere or is this automatic?
