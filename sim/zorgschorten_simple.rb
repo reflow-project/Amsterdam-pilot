@@ -16,11 +16,6 @@ simulation("Transfer", Date.today - 1, Date.today) do
     pool :gowns, "Gowns", :gown, 1 #produces the one gown in the pool 
   end
 
-  agent :a_tsc, "Clean Lease Service" do 
-    authenticate "AGENT_CLS_EMAIL", "AGENT_CLS_PASSWORD"
-    location "AGENT_CLS_LOCATION"
-  end
-
   agent :a_launderer, "Clean Lease Laundry Service" do
     authenticate "AGENT_CLC_EMAIL", "AGENT_CLC_PASSWORD"
     location "AGENT_CLC_LOCATION"
