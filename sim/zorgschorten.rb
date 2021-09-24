@@ -16,7 +16,7 @@ require 'securerandom'
 #
 # - we could think about 'using' laundry machine resources for example
 #
-simulation("Zorgschorten", Date.today, Date.today + 30) do 
+simulation("Zorgschorten", Date.today, Date.today + 7) do 
 
   # base data that needs to be present in ENV: 
   #
@@ -67,52 +67,38 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
   end
   # on delivery add the lot to the in use pool 
   
-  # every day between 5 and 10 in use gowns are put in the hamper (wild guessing)
+  # every day between 5 and 10 in use gowns are put in the hamper 
   event :e_out_use, "Use (Discard)" do 
-    schedule cron: 1 # every day
+    schedule cron: 1 
     process do 
-      batch = pool_take :gown_in_use, rand(5..10) # take is not a verb
-      puts batch
-      as_performer :a_hospital # set current agent
-      action_use_batch batch # register gowns as used in reflow os
-      pool_put batch, :gown_dirty_pool # move the gowns to the dirty pool
+      as_performer :a_hospital 
+      pool_take :gown_in_use, rand(5..10) 
+      use_batch "used in emergency room" 
+      pool_put :gown_dirty_pool 
     end
   end 
- 
   
   #
-  # every seven days the dirty pool is picked up, fantasy
+  # every seven days the entire dirty pool is picked up
   #
   event :e_transfer_pickup, "pickup" do 
-    schedule cron: 7  # every week 
+    schedule cron: 7  
     process do
       as_performer :a_hospital
-      batch = pool_take :gown_dirty_pool # takes all
-      action_consume_batch batch # removes the gowns from the hospital pool in reflow_os 
-      lot_put :gown_dirty_lot, batch # put the dirty gowns in the dirty lot
-      
-      action_produce_lot :gown_dirty_lot, batch # lot should have own id, containing manifest of each gown in gowns, produced in reflow_os
-      action_transfer_lot :gown_dirty_lot, :a_hospital, :a_launderer #transfer the batched gowns in reflow_os 
+      pool_take :gown_dirty_pool
+      pack_lot :gown_dirty_lot
+      transfer_lot :gown_dirty_lot, :a_hospital, :a_launderer 
     end
   end 
 
-  # performs laundry for entire lot 1 day after receiving :gown_dirty_lot, fantasy
+  # performs laundry for entire lot 1 day and repacks as clean 
   event :e_laundry, "Modify (clean)" do
     schedule on_event: :e_transfer_pickup, with_delay: 1 
     process do
       as_performer :a_launderer
-      
-      batch = action_lot_unpack :gown_dirty_lot # takes all items from lot, and recreates as own
-      
-      #### COMMONSPUB GRAPHQL IMPLEMENTED UNTIL HERE
-      # consume of the transfered lot fails somehow.. this not expected!
-      action_consume_lot :gown_dirty_lot  #consume current lot in reflow os
-      
-      action_modify_batch "clean", batch # perform the actual cleaning in reflow os, , assigning the lot id that was the source
-      
-
-      lot_put :gown_clean, batch
-      action_produce_lot :gown_clean, batch # produce new lot in reflow os
+      unpack_lot :gown_dirty_lot 
+      modify_batch "performed deep clean at 100 deg"
+      pack_lot :gown_clean
     end
   end 
 
@@ -121,7 +107,7 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
     schedule on_event: :e_laundry, with_delay: rand(0..2)
     process do
       as_performer :a_launderer
-      action_transfer_lot :gown_clean, :a_launderer, :a_tsc #transfer the batched gowns in reflow_os 
+      transfer_lot :gown_clean, :a_launderer, :a_tsc 
     end
   end 
 
@@ -130,16 +116,10 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
     schedule on_event: :e_transfer_clean, :with_delay => rand(0..2) 
     process do
       as_performer :a_tsc
-      batch = action_lot_unpack :gown_clean
-      
-      action_modify_batch "inspect", batch #inspects the whole batch
-      amount_passed = (batch.count * rand(0.95..1)).to_i # between zero and three items fail the inspection
-      passed = batch.take(amount_passed)
-      failed = batch.drop(amount_passed)
-      
-      action_consume_lot :gown_clean
-      action_produce_batch passed  #add all passed items to the inventory
-      inventory_put passed, :gown_stock #should raise level
+      unpack_lot :gown_clean
+      modify_batch "peformed inspection"
+      pass_batch rand(0.95..1)
+      inventory_put :gown_stock 
     end
   end  
 
@@ -149,11 +129,9 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
     schedule cron: 2 
     process do
       as_performer :a_tsc
-      batch = inventory_take :gown_stock, rand(1..10) #should lower level
-      action_consume_batch batch #consume in reflow os 
-      lot_put :gown_ready_for_use, batch
-      action_produce_lot :gown_ready_for_use, batch # produce a lot in reflow os
-      action_transfer_lot :gown_ready_for_use, :a_tsc, :a_hospital # transfer lot
+      inventory_take :gown_stock, rand(1..10) 
+      pack_lot :gown_ready_for_use
+      transfer_lot :gown_ready_for_use, :a_tsc, :a_hospital 
      end
   end 
 
@@ -162,10 +140,8 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
     schedule on_event: :e_transfer_delivery 
     process do 
       as_performer :a_hospital
-      action_consume_lot :gown_ready_for_use
-      batch = action_lot_unpack :gown_ready_for_use
-      action_produce_batch batch #create the batch items in reflow os
-      pool_put(batch, :gown_in_use)
+      unpack_lot :gown_ready_for_use
+      pool_put :gown_in_use
     end
   end 
 

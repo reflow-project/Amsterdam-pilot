@@ -66,6 +66,9 @@ module ReflowOS
                   resourceInventoriedAs {
                     id
                   }
+                  toResourceInventoriedAs {
+                    id
+                  }
           }
       }
     }
@@ -177,9 +180,23 @@ class ReflowOSClient
     result.id #return value is event id
   end
  
-  # TODO produce a lot
-  #
- 
+  # Modify a single resource
+  # Does nothing to the resource except log an event
+  def modify_one(token, agent_id, resource_id, event_note, ts)
+    variables = {
+      event: {
+        note: event_note,
+        action: "modify",
+        provider: agent_id,
+        receiver: agent_id,
+        hasPointInTime: ts,
+        resourceInventoriedAs: resource_id 
+      }
+    }
+    result = performEvent(token, variables)
+    result.id #return value is event id
+  end
+
   # TODO create / check for unit with label om2:one
   # 01FDSJXTEB1KHRQ4D3Q95WS95C in dev db
   
@@ -200,8 +217,8 @@ class ReflowOSClient
   end
  
 
-  # transfer a resource, (also the location)
-  def transfer_lot(token, provider_id, receiver_id, lot_id, event_note, ts)
+  # transfer a resource, (th)
+  def transfer_lot(token, provider_id, receiver_id, lot_id, event_note, ts, location_id)
     variables = {
       event: {
         note: event_note,
@@ -209,18 +226,40 @@ class ReflowOSClient
         provider: provider_id,
         receiver: receiver_id,
         hasPointInTime: ts,
-        resourceInventoriedAs: lot_id,
-        # resourceQuantity: {
-        #   hasNumericalValue: 1,
-        #   hasUnit: ENV["UNIT_OM2"], #maybe this unit should come from simulation?
-        # }
+        toResourceInventoriedAs: lot_id,
+        atLocation: location_id, #this is not the location it ends up after the event...
+        resourceQuantity: {
+          hasNumericalValue: 1,
+          hasUnit: ENV["UNIT_OM2"], #maybe this unit should come from simulation?
+        }
       }
     }
-    #TODO do we need to specify the new location somewhere or is this automatic?
     
     result = performEvent(token, variables)
     result.id #return value is event id
   end
+
+  def move_lot(token, provider_id, receiver_id, lot_id, event_note, ts, location_id)
+    variables = {
+      event: {
+        note: event_note,
+        action: "move",
+        provider: provider_id,
+        receiver: receiver_id,
+        hasPointInTime: ts,
+        toResourceInventoriedAs: lot_id,
+        atLocation: location_id, #this is not the location it ends up after the event...
+        resourceQuantity: {
+          hasNumericalValue: 1,
+          hasUnit: ENV["UNIT_OM2"], #maybe this unit should come from simulation?
+        }
+      }
+    }
+    
+    result = performEvent(token, variables)
+    result.id #return value is event id
+  end
+
 
   # raise or lower an existing inventoried resource
   # used by swap shop
@@ -243,14 +282,16 @@ class ReflowOSClient
   end
 
   Result = Struct.new(:id) #fake a good result TODO: fix this
+
   def performEvent(token, variables)
-    # puts "using: #{token} - #{variables}"
     result = ReflowOS::Client.query(ReflowOS::EventQuery, context: {token: token}, variables: variables)
-    if result.data.create_economic_event == nil
+    if result == nil or result.data == nil or result.data.create_economic_event == nil
       puts "REFLOW OS ERROR!!!: #{result.original_hash["errors"][0]["message"]} variables: #{variables}"
-      # byebug
       return Result.new("_failed_")
     end
+    # for debugging uncomment lines below
+    # puts "---\n  PERFORMING EVENT: #{variables} ---\n"
+    # puts "#{result.original_hash}\n"
     result.data.create_economic_event.economic_event
   end
 

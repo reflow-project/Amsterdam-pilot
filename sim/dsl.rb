@@ -257,14 +257,14 @@ def current_amount(resource_key)
   raise "Can't find resource: #{resource_key}"
 end
 
-# remove and return amount items from the specified pool
+# place amount items from the specified pool in the context batch
 def pool_take(pool_key, amount = nil)
   max = current_amount(pool_key)
   amount = max  if (amount == nil or amount > max)
 
   items = $pools[pool_key][:items].take(amount)
   $pools[pool_key][:items] = $pools[pool_key][:items].drop(amount)
-  return items
+  $context[:batch] = items
 end
 
 # remove and return amount items from the specified inventory
@@ -274,24 +274,25 @@ def inventory_take(inventory_key, amount = nil)
 
   items = $inventories[inventory_key][:items].take(amount)
   $inventories[inventory_key][:items] = $inventories[inventory_key][:items].drop(amount)
-  return items
+  $context[:batch] = items
 end
 
 def lot_take(lot_key)
   items = $lots[lot_key][:items]
-  $lots[lot_key][:items] = [] #empty the lot
-  items
+  $lots[lot_key][:items] = [] 
+  $context[:batch] = items
 end
 
 # take resources out of a lot, and recreate effectively unpacking
-def action_lot_unpack(lot_key)
+def unpack_lot(lot_key)
   resource_key = $lots[lot_key][:resource_key]
   resource_label = $resources[resource_key][:label]
   performer = $context[:process_performer]
   agent = $agents[performer]
   date = $context[:date]
 
-  packed_items = lot_take(lot_key) 
+  lot_take(lot_key)  # places them in batch
+  packed_items = $context[:batch] 
   unpacked_items = []
 
   #recreate as own
@@ -309,27 +310,30 @@ def action_lot_unpack(lot_key)
     item[:created_at_day] = $context[:date].iso8601
     unpacked_items << item 
   end
-  puts "unpacked lot: #{unpacked_items}" 
-  unpacked_items
+  $context[:batch] = unpacked_items
 end
 
-# add the items to the pool
-def pool_put(items, pool_key)
+# add the items in the context batch to the pool
+def pool_put(pool_key)
+  items = $context[:batch]
   $pools[pool_key][:items].concat items
 end
 
 # add the items to the inventory
-def inventory_put(items, inventory_key)
+def inventory_put(inventory_key)
+  items = $context[:batch]
   $inventories[inventory_key][:items].concat items
 end
 
 #replace the lot items
-def lot_put(lot_key, items)
+def lot_put(lot_key)
+  items = $context[:batch]
   $lots[lot_key][:items] = items
 end
 
 # all actions will perform graphql calls
-def action_use_batch(items)
+def use_batch(note)
+  items = $context[:batch]
   performer = $context[:process_performer]
   agent = $agents[performer]
   date = $context[:date]
@@ -341,20 +345,45 @@ def action_use_batch(items)
         agent[:token], 
         agent[:agent_id], 
         item[:id], 
-        "use event (dirty) for #{$context[:process_performer]}",
+        note,
         date.iso8601)
     puts "Created Reflow OS Use event: #{event_id}"
   end
 end
 
-def action_modify_batch(label, items)
+def modify_batch(note)
+  items = $context[:batch]
   performer = $context[:process_performer]
-  puts "graphql MODIFY #{label} by #{performer} on #{items.count} items" 
+  agent = $agents[performer]
+  date = $context[:date]
+
+  puts "graphql MODIFY by #{performer} on #{items.count} items" 
+  
+  items.each do |item|
+    event_id = $client.modify_one(
+        agent[:token], 
+        agent[:agent_id], 
+        item[:id], 
+        note,
+        date.iso8601)
+    puts "Created Reflow OS Modify event: #{event_id}"
+  end
+end
+
+#removes 1 - fraction items and places them in batch_failed
+def pass_batch(fraction)
+  items = $context[:batch]
+  amount_passed = (items.count * fraction).to_i # between zero and three items fail the inspection
+  passed = items.take(amount_passed)
+  failed = items.drop(amount_passed)
+  $context[:batch] = passed
+  $context[:batch_failed] = failed # in case we want to do something with this
 end
 
 # perform a consume verb, if a fraction is specified operate on part of the batch, 
 # default operate on everything
-def action_consume_batch(items)
+def consume_batch
+  items = $context[:batch]
   performer = $context[:process_performer]
   puts "graphql CONSUME #{items.count} items by #{performer}"
   
@@ -392,7 +421,8 @@ def action_consume_lot(lot_key)
   puts "Created Reflow OS Consume lot event: #{event_id}"
 end
 
-def action_produce_lot(lot_key, manifest_items)
+def produce_lot(lot_key)
+  manifest_items = $context[:batch]
   performer = $context[:process_performer] 
   puts "graphql PRODUCE #{lot_key} with #{$lots[lot_key][:items].count} items by #{performer}"
  
@@ -422,7 +452,7 @@ def action_produce_batch(items)
   puts "graphql PRODUCE #{items.count} items by #{performer}"
 end
 
-def action_transfer_lot(lot_key, provider, receiver)
+def transfer_lot(lot_key, provider, receiver)
  
   provider = $agents[provider]
   receiver = $agents[receiver]
@@ -431,8 +461,9 @@ def action_transfer_lot(lot_key, provider, receiver)
   resource_key = $lots[lot_key][:resource_key]
   resource_label = $resources[resource_key][:label]
   lot_id = $lots[lot_key][:id]
-  
-  puts "graphql TRANSFER of #{resource_key} Lot from #{provider} to #{receiver}"
+  location_id =  receiver[:location]
+
+  puts "graphql TRANSFER of #{resource_key} Lot from #{provider[:label]} to #{receiver[:label]}"
  
   #transfer from provider to receiver (by provider)
   event_id = $client.transfer_lot(
@@ -441,7 +472,26 @@ def action_transfer_lot(lot_key, provider, receiver)
     receiver[:agent_id],
     lot_id,
     "#{resource_label} Lot Transfer",
-    date.iso8601) 
+    date.iso8601,
+    location_id) 
+
+  #also do a move from provider to receiver (by provider)
+#   event_id = $client.move_lot(
+#     provider[:token],
+#     provider[:agent_id],
+#     receiver[:agent_id],
+#     lot_id,
+#     "#{resource_label} Lot Transfer",
+#     date.iso8601,
+#     location_id) 
 
     puts "Created Reflow OS TRANSFER event: #{event_id}"
+end
+
+# pack a batch into the lot specified by lot_key
+# side effect: produces a new resource and assigns it to the lot key
+def pack_lot(lot_key)
+      consume_batch 
+      lot_put lot_key
+      produce_lot lot_key 
 end

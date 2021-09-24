@@ -26,25 +26,19 @@ simulation("Transfer", Date.today - 1, Date.today) do
     location "AGENT_CLC_LOCATION"
   end
 
-  event :test, "Test transfer lot and consume as receiver" do 
+  event :test, "Test pack, unpack, transfer, use and modify" do 
     schedule cron: 1 
     process do 
 
       as_performer :a_hospital 
-
-      #take the one gown from the pool and produce a lot (destroying the gown)
-      batch = pool_take :gowns, 1 # simulation
-      action_consume_batch batch # graphql
-      lot_put :a_lot, batch # simulation
-      action_produce_lot :a_lot, batch  #graphql
-
-      #transfer the lot
-      action_transfer_lot :a_lot, :a_hospital, :a_launderer #graphql
+      pool_take :gowns, 1 
+      use_batch "used in emergency room"
+      pack_lot :a_lot  
+      transfer_lot :a_lot, :a_hospital, :a_launderer 
       
       as_performer :a_launderer
-
-      #try to consume the lot, fails
-      action_consume_lot :a_lot  
+      unpack_lot :a_lot 
+      modify_batch "performed deep clean at 100 deg"
 
     end
   end 
