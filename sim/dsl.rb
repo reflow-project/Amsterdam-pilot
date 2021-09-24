@@ -31,7 +31,6 @@ def simulation(label, date_start = Date.today, date_end = Date.today + 365)
       ts = day.to_time.to_datetime
       $context = {:date => ts} #clean the context for every call
       $processes[event_key].call
-      sleep 0.1 #delay not to go to fast
     end
   end
   puts "--- AFTER ---"
