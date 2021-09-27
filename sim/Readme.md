@@ -89,7 +89,7 @@ In above example all actions below *as_performer* are executed while logged in a
 *pack_lot* bundles all items in the 'context batch' into a new lot, saved under the key ':gown_dirty_lot'
 *transfer_lot* transfers the lot saved under key ':gown_dirty_lot' from agent ':a_hospital' to agent ':a_launderer'.
 
-### Actions
+### Commands  
 The following command directives are available for chaining together in a process block:
 
 - __as_performer__: set the active agent, all commands will be executed in this context until changed
