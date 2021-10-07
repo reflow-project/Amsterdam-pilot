@@ -132,7 +132,7 @@ class ReflowOSClient
     result.resource_inventoried_as.id #return value is created item id
   end
 
-  # produce a new empty container resource (stock / lot)
+  # produce a new empty container resource (stock or transfer container)
   # token is bearer token used to perform as_agent
   # agent_id is the agent id that produces the resource
   # name is the name of the resource (what we're making)
@@ -218,7 +218,7 @@ class ReflowOSClient
  
 
   # transfer a resource, (th)
-  def transfer_lot(token, provider_id, receiver_id, lot_id, event_note, ts, location_id)
+  def transfer_one(token, provider_id, receiver_id, resource_id, event_note, ts, location_id)
     variables = {
       event: {
         note: event_note,
@@ -226,7 +226,7 @@ class ReflowOSClient
         provider: provider_id,
         receiver: receiver_id,
         hasPointInTime: ts,
-        toResourceInventoriedAs: lot_id,
+        toResourceInventoriedAs: resource_id,
         atLocation: location_id, #this is not the location it ends up after the event...
         resourceQuantity: {
           hasNumericalValue: 1,
@@ -239,7 +239,7 @@ class ReflowOSClient
     result.id #return value is event id
   end
 
-  def move_lot(token, provider_id, receiver_id, lot_id, event_note, ts, location_id)
+  def move_one(token, provider_id, receiver_id, resource_id, event_note, ts, location_id)
     variables = {
       event: {
         note: event_note,
@@ -247,7 +247,7 @@ class ReflowOSClient
         provider: provider_id,
         receiver: receiver_id,
         hasPointInTime: ts,
-        toResourceInventoriedAs: lot_id,
+        toResourceInventoriedAs: resource_id,
         atLocation: location_id, #this is not the location it ends up after the event...
         resourceQuantity: {
           hasNumericalValue: 1,
