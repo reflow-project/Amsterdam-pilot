@@ -8,7 +8,7 @@ simulation("Transfer", Date.today - 1, Date.today) do
     {:tracking_id => "http://cleanlease.nl/zs/#{rid}", :description => "Clean Lease Schort: #{rid}"}
   end
 
-  lot :a_lot, "Gown Lot (dirty)", :gown 
+  container :a_container, "Gown Container (dirty)", :gown 
 
   agent :a_hospital, "OLVG" do
     authenticate "AGENT_OLVG_EMAIL", "AGENT_OLVG_PASSWORD"
@@ -28,11 +28,11 @@ simulation("Transfer", Date.today - 1, Date.today) do
       as_performer :a_hospital 
       pool_take :gowns, 1 
       use_batch "used in emergency room"
-      pack_lot :a_lot  
-      transfer_lot :a_lot, :a_hospital, :a_launderer 
+      pack_container :a_container  
+      transfer_container :a_container, :a_hospital, :a_launderer 
       
       as_performer :a_launderer
-      unpack_lot :a_lot 
+      unpack_container :a_container 
       modify_batch "performed deep clean at 100 deg"
 
     end

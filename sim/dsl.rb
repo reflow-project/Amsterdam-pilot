@@ -42,9 +42,9 @@ def print_state
   $agents.keys.each do |key|
     puts "#{key}: #{$agents[key]} "
   end
-  puts "LOTS"
-  $lots.keys.each do |key|
-    puts "#{key}: #{$lots[key][:items].count} "
+  puts "CONTAINERS"
+  $containers.keys.each do |key|
+    puts "#{key}: #{$containers[key][:items].count} "
   end
   puts "POOLS"
   $pools.keys.each do |key|
@@ -92,12 +92,12 @@ end
 
 # a collection of resources that can be used for transfers
 # type refers to an id of a resource that has been defined as a resource 
-# amount for lot is always specified by the event
+# amount for container is always specified by the event
 # items will be added / removed inside events, not at definition time
-$lots = Hash.new
-def lot(key, label, resource_key)
+$containers = Hash.new
+def container(key, label, resource_key)
   raise "resource not found: #{resource_key}" if not $resources.key? resource_key 
-  $lots[key] = {:label => label, :resource_key => resource_key, :items => []}
+  $containers[key] = {:label => label, :resource_key => resource_key, :items => []}
 end
 
 # a collection of resources that we want to keep track of in the simulation 
@@ -247,10 +247,10 @@ def as_performer(agent)
 end
 
 #convenience function to return the current number of items in the resource
-#can be a single resource, a lot, pool or inventory
+#can be a single resource, a container, pool or inventory
 def current_amount(resource_key)
   return 1 if $resources.key? resource_key
-  return $lots[resource_key][:items].count if $lots.key? resource_key
+  return $containers[resource_key][:items].count if $containers.key? resource_key
   return $pools[resource_key][:items].count if $pools.key? resource_key
   return $inventories[resource_key][:items].count if $inventories.key? resource_key
   raise "Can't find resource: #{resource_key}"
@@ -276,21 +276,21 @@ def inventory_take(inventory_key, amount = nil)
   $context[:batch] = items
 end
 
-def lot_take(lot_key)
-  items = $lots[lot_key][:items]
-  $lots[lot_key][:items] = [] 
+def container_take(container_key)
+  items = $containers[container_key][:items]
+  $containers[container_key][:items] = [] 
   $context[:batch] = items
 end
 
-# take resources out of a lot, and recreate effectively unpacking
-def unpack_lot(lot_key)
-  resource_key = $lots[lot_key][:resource_key]
+# take resources out of a container, and recreate effectively unpacking
+def unpack_container(container_key)
+  resource_key = $containers[container_key][:resource_key]
   resource_label = $resources[resource_key][:label]
   performer = $context[:process_performer]
   agent = $agents[performer]
   date = $context[:date]
 
-  lot_take(lot_key)  # places them in batch
+  container_take(container_key)  # places them in batch
   packed_items = $context[:batch] 
   unpacked_items = []
 
@@ -324,10 +324,10 @@ def inventory_put(inventory_key)
   $inventories[inventory_key][:items].concat items
 end
 
-#replace the lot items
-def lot_put(lot_key)
+#replace the container items
+def container_put(container_key)
   items = $context[:batch]
-  $lots[lot_key][:items] = items
+  $containers[container_key][:items] = items
 end
 
 # all actions will perform graphql calls
@@ -401,49 +401,49 @@ def consume_batch
   end
 end
 
-# consume a single lot resource
-def action_consume_lot(lot_key)
+# consume a single container resource
+def action_consume_container(container_key)
   performer = $context[:process_performer]
   date = $context[:date]
   agent = $agents[performer]
-  resource_key = $lots[lot_key][:resource_key]
+  resource_key = $containers[container_key][:resource_key]
   
   puts "graphql CONSUME #{resource_key} by #{performer}" 
-  item = $lots[lot_key]
+  item = $containers[container_key]
   event_id = $client.consume_one(
         agent[:token], 
         agent[:agent_id], 
         item[:id], 
-        "consume lot by #{$context[:process_performer]}",
+        "consume container by #{$context[:process_performer]}",
         date.iso8601)
 
-  puts "Created Reflow OS Consume lot event: #{event_id}"
+  puts "Created Reflow OS Consume container event: #{event_id}"
 end
 
-def produce_lot(lot_key)
+def produce_container(container_key)
   manifest_items = $context[:batch]
   performer = $context[:process_performer] 
-  puts "graphql PRODUCE #{lot_key} with #{$lots[lot_key][:items].count} items by #{performer}"
+  puts "graphql PRODUCE #{container_key} with #{$containers[container_key][:items].count} items by #{performer}"
  
   agent = $agents[performer]
   date = $context[:date]
-  resource_key = $lots[lot_key][:resource_key]
+  resource_key = $containers[container_key][:resource_key]
   resource_label = $resources[resource_key][:label]
  
-  #create a lot resource in reflow os, put in the list of tracking id's as the manifest note  
+  #create a container resource in reflow os, put in the list of tracking id's as the manifest note  
   manifest = manifest_items.map{|item|item[:tracking_id]}.join(",")
   puts "manifest: #{manifest}"
-  lot_id = $client.produce_empty_container(
+  container_id = $client.produce_empty_container(
           agent[:token], 
           agent[:agent_id], 
-          "#{resource_label} Lot", 
+          "#{resource_label} Container", 
           agent[:location],
-          "#{resource_label} Lot",
+          "#{resource_label} Container",
           "Manifest: #{manifest}",
-          date.iso8601) #returns lot id
+          date.iso8601) #returns container id
 
-  $lots[lot_key][:id] = lot_id
-  puts "Created Reflow OS Lot event: #{lot_id}"
+  $containers[container_key][:id] = container_id
+  puts "Created Reflow OS Container event: #{container_id}"
 end
 
 def action_produce_batch(items)
@@ -451,46 +451,46 @@ def action_produce_batch(items)
   puts "graphql PRODUCE #{items.count} items by #{performer}"
 end
 
-def transfer_lot(lot_key, provider, receiver)
+def transfer_container(container_key, provider, receiver)
  
   provider = $agents[provider]
   receiver = $agents[receiver]
   date = $context[:date]
 
-  resource_key = $lots[lot_key][:resource_key]
+  resource_key = $containers[container_key][:resource_key]
   resource_label = $resources[resource_key][:label]
-  lot_id = $lots[lot_key][:id]
+  container_id = $containers[container_key][:id]
   location_id =  receiver[:location]
 
-  puts "graphql TRANSFER of #{resource_key} Lot from #{provider[:label]} to #{receiver[:label]}"
+  puts "graphql TRANSFER of #{resource_key} Container from #{provider[:label]} to #{receiver[:label]}"
  
   #transfer from provider to receiver (by provider)
-  event_id = $client.transfer_lot(
+  event_id = $client.transfer_one(
     provider[:token],
     provider[:agent_id],
     receiver[:agent_id],
-    lot_id,
-    "#{resource_label} Lot Transfer",
+    container_id,
+    "#{resource_label} Container Transfer",
     date.iso8601,
     location_id) 
 
   #also do a move from provider to receiver (by provider)
-#   event_id = $client.move_lot(
+#   event_id = $client.move_one(
 #     provider[:token],
 #     provider[:agent_id],
 #     receiver[:agent_id],
-#     lot_id,
-#     "#{resource_label} Lot Transfer",
+#     container_id,
+#     "#{resource_label} Container Transfer",
 #     date.iso8601,
 #     location_id) 
 
     puts "Created Reflow OS TRANSFER event: #{event_id}"
 end
 
-# pack a batch into the lot specified by lot_key
-# side effect: produces a new resource and assigns it to the lot key
-def pack_lot(lot_key)
+# pack a batch into the container specified by container_key
+# side effect: produces a new resource and assigns it to the container key
+def pack_container(container_key)
       consume_batch 
-      lot_put lot_key
-      produce_lot lot_key 
+      container_put container_key
+      produce_container container_key 
 end

@@ -27,10 +27,10 @@ resource :gown, "Gown" do
   end
 ```
 
-You can declare *lots* (named container resources used for transfers) that can be used to bundle identifiable resources of a certain type, e.g.
+You can declare *containers* (named container resources used for transfers) that can be used to bundle identifiable resources of a certain type, e.g.
 
 ```
-lot :gown_dirty_lot, "Gown Lot (dirty)", :gown 
+container :gown_dirty_container, "Gown Container (dirty)", :gown 
 ```
 
 ### Agents
@@ -41,7 +41,7 @@ The *agent* directive is used to declare agents that take part in the scenario. 
 agent :a_hospital, "OLVG" do
       authenticate "AGENT_OLVG_EMAIL", "AGENT_OLVG_PASSWORD"
       location "AGENT_OLVG_LOCATION"
-      pool :gown_in_use, "Gown Lot (in use)", :gown, 10 
+      pool :gown_in_use, "Gowns (in use)", :gown, 10 
   end
 
 ```
@@ -79,15 +79,15 @@ event :e_transfer_pickup, "pickup" do
     process do
       as_performer :a_hospital
       pool_take :gown_dirty_pool
-      pack_lot :gown_dirty_lot
-      transfer_lot :gown_dirty_lot, :a_hospital, :a_launderer 
+      pack_container :gown_dirty_container
+      transfer_container :gown_dirty_container, :a_hospital, :a_launderer 
     end
   end 
 ```
 In above example all actions below *as_performer* are executed while logged in as the agent ':a_hospital'. 
 *pool_take* (without an amount specified) takes all items from the pool and puts them in the 'context batch'
-*pack_lot* bundles all items in the 'context batch' into a new lot, saved under the key ':gown_dirty_lot'
-*transfer_lot* transfers the lot saved under key ':gown_dirty_lot' from agent ':a_hospital' to agent ':a_launderer'.
+*pack_container* bundles all items in the 'context batch' into a new container, saved under the key ':gown_dirty_container'
+*transfer_container* transfers the container saved under key ':gown_dirty_container' from agent ':a_hospital' to agent ':a_launderer'.
 
 ### Commands  
 The following command directives are available for chaining together in a process block:
@@ -97,11 +97,11 @@ The following command directives are available for chaining together in a proces
 - __pool_put__: put all items in the *context batch* in the pool 
 - __inventory_take__: take an amount or all items from an inventory and put in the *context batch* for other actions
 - __inventory_put__: put all items in the context batch in the inventory
-- __lot_take__: take all items from the lot and put in the *context batch* for other actions
-- __lot_put__: put all items from the *context batch* in the lot
-- __pack_lot__: pack all items from the *context batch* in a lot resource. In reflow os this works by vf:consuming all contained items, and vf:producing a lot resource that contains a manifest note of all tracking identifiers of the contained items
-- __unpack_lot__: unpack all items from the lot and place them into the *context batch*. In reflow os this works by vf:consuming the lot resource and vf:producing (resurrecting) all the contained items in the manifest again.
-- __transfer_lot__: perform a vf:transfer economic event on a lot from a providing agent to a receiving agent. The providing agent should be the active agent specified with *as_performer*
+- __container_take__: take all items from the container and put in the *context batch* for other actions
+- __container_put__: put all items from the *context batch* in the container 
+- __pack_container__: pack all items from the *context batch* in a container resource. In reflow os this works by vf:consuming all contained items, and vf:producing a container resource that contains a manifest note of all tracking identifiers of the contained items
+- __unpack_container__: unpack all items from the container and place them into the *context batch*. In reflow os this works by vf:consuming the container resource and vf:producing (resurrecting) all the contained items in the manifest again.
+- __transfer_container__: perform a vf:transfer economic event on a container from a providing agent to a receiving agent. The providing agent should be the active agent specified with *as_performer*
 - __use_batch__: perform a vf:use economic event on each item in the *context batch*
 - __modify_batch__: perform a vf:modify economic event on each item in the *context batch*
 - __pass_batch__: remove 'amount' items from the *context batch* and place them in the *failed context batch*. the 'passed' items remain in the default *context batch*. this can be used for quality inspection / failure scenarios etc.
@@ -120,7 +120,7 @@ After that the simulation immediately starts the first day of the simulation and
 
 ## Example scenario output
 
-This is the output for the really short [zorgschorten_simple.rb](zorgschorten_simple.rb) scenario. It has only one day and one event and one medical gown, but it does include two agents and a lot off command directives including a pack, transfer and unpack.
+This is the output for the really short [zorgschorten_simple.rb](zorgschorten_simple.rb) scenario. It has only one day and one event and one medical gown, but it does include two agents and a few command directives including a pack, transfer and unpack.
 
 ```
 2021-09-26 -> 2021-09-27
@@ -129,7 +129,7 @@ AGENTS
 a_hospital: {:label=>"OLVG", :token=>"QTEyOEdDTQ.j9O0lgZqeX29Kia36TsmzxcBy5D_2dyr0Ka0m0ltZYuXjzNZaJlikYJDYC4.m1CqEa7_f_3dSYKN.W-ZOb4H_Sb98RoIUS0Uj0UOKRZjDAVWU1LayBjve9i8uy1742vfl74V1pb8A11xK.NE3v7weeBBTZmVsfLuw2mg", :agent_id=>"01FF84K296NSPKGQ39QD5EY30C", :location=>"01FF84V8MWSEKNQ3ZQCRT8CPM8"}
 a_launderer: {:label=>"Clean Lease Laundry Service", :token=>"QTEyOEdDTQ.lWMNkUgQKzSx3a9h3fHE3O8ctbhsyLD9Qc5jngBeN9VY298x23yyl-eEuns.DgCh-PuGTNvoGBOu.98qSJ-JDlP7Ogep9KQUgQQ9fP5rZv_BVjV-P1f25ZAJDlgkjmpcLJMqdSbo3ZwDq.TyhZ7yBYgP5gMiQFwbnxiA", :agent_id=>"01FF84PJFC845FTTP59B3SBS6P", :location=>"01FF853TGK8GZBF0FE46NT7CM4"}
 LOTS
-a_lot: 0
+a_container: 0
 POOLS
 gowns: 1 (a_hospital)
 INVENTORIES
@@ -139,10 +139,10 @@ graphql USE by a_hospital on 1 items
 Created Reflow OS Use event: 01FGKD4ZA3SAZ42ZEXHDDE6P0W
 graphql CONSUME 1 items by a_hospital
 Created Reflow OS Consume event: 01FGKD50K534EPDK9AHM80HHVA
-graphql PRODUCE a_lot with 1 items by a_hospital
+graphql PRODUCE a_container with 1 items by a_hospital
 manifest: http://cleanlease.nl/zs/a447dd73-88d9-4927-a334-2fa259d5cb9a
-Created Reflow OS Lot event: 01FGKD51T706X1890Y29A4Z9TK
-graphql TRANSFER of gown Lot from OLVG to Clean Lease Laundry Service
+Created Reflow OS Contaienr event: 01FGKD51T706X1890Y29A4Z9TK
+graphql TRANSFER of gown Container from OLVG to Clean Lease Laundry Service
 Created Reflow OS TRANSFER event: 01FGKD534C6W8ZMY6PGD8M0GZR
 graphql MODIFY by a_launderer on 1 items
 Created Reflow OS Modify event: 01FGKD55N94JKEPW99QNQZJKZJ
@@ -150,8 +150,8 @@ Created Reflow OS Modify event: 01FGKD55N94JKEPW99QNQZJKZJ
 AGENTS
 a_hospital: {:label=>"OLVG", :token=>"QTEyOEdDTQ.j9O0lgZqeX29Kia36TsmzxcBy5D_2dyr0Ka0m0ltZYuXjzNZaJlikYJDYC4.m1CqEa7_f_3dSYKN.W-ZOb4H_Sb98RoIUS0Uj0UOKRZjDAVWU1LayBjve9i8uy1742vfl74V1pb8A11xK.NE3v7weeBBTZmVsfLuw2mg", :agent_id=>"01FF84K296NSPKGQ39QD5EY30C", :location=>"01FF84V8MWSEKNQ3ZQCRT8CPM8"}
 a_launderer: {:label=>"Clean Lease Laundry Service", :token=>"QTEyOEdDTQ.lWMNkUgQKzSx3a9h3fHE3O8ctbhsyLD9Qc5jngBeN9VY298x23yyl-eEuns.DgCh-PuGTNvoGBOu.98qSJ-JDlP7Ogep9KQUgQQ9fP5rZv_BVjV-P1f25ZAJDlgkjmpcLJMqdSbo3ZwDq.TyhZ7yBYgP5gMiQFwbnxiA", :agent_id=>"01FF84PJFC845FTTP59B3SBS6P", :location=>"01FF853TGK8GZBF0FE46NT7CM4"}
-LOTS
-a_lot: 0
+CONTAINERS
+a_container: 0
 POOLS
 gowns: 0 (a_hospital)
 INVENTORIES
