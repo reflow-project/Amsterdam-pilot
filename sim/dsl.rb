@@ -501,7 +501,7 @@ def transfer_custody_batch(receiver, label)
       "#{label} Batch Transfer Custody",
       date.iso8601,
       location_id) 
-    puts "Created Reflow OS Transfer event: #{event_id}"
+    puts "Created Reflow OS Transfer Custody event: #{event_id}"
   end
 end
 
