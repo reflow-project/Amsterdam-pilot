@@ -481,6 +481,30 @@ def transfer_batch(receiver, label)
   end
 end
 
+# transfers each item in the context batch 
+# from the current performer
+# to the receiver
+def transfer_custody_batch(receiver, label)
+  performer = $context[:process_performer]
+  provider = $agents[performer]
+  receiver = $agents[receiver]
+  date = $context[:date]
+  items = $context[:batch]
+  location_id =  receiver[:location]
+
+  items.each do |item|
+    event_id = $client.transfer_custody_one(
+      provider[:token],
+      provider[:agent_id],
+      receiver[:agent_id],
+      item[:id],
+      "#{label} Batch Transfer Custody",
+      date.iso8601,
+      location_id) 
+    puts "Created Reflow OS Transfer event: #{event_id}"
+  end
+end
+
 #does a volume transfer on all items in the context batch
 def transfer_volume(receiver, label)
   performer = $context[:process_performer]

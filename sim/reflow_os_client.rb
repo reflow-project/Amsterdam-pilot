@@ -288,6 +288,27 @@ class ReflowOSClient
     result.id #return value is event id
   end
 
+  def transfer_custody_one(token, provider_id, receiver_id, resource_id, event_note, ts, location_id)
+    variables = {
+      event: {
+        note: event_note,
+        action: "transfer-custody",
+        provider: provider_id,
+        receiver: receiver_id,
+        hasPointInTime: ts,
+        toResourceInventoriedAs: resource_id,
+        atLocation: location_id, #this is not the location it ends up after the event...
+        resourceQuantity: {
+          hasNumericalValue: 1,
+          hasUnit: ENV["UNIT_OM2"], #maybe this unit should come from simulation?
+        }
+      }
+    }
+    
+    result = performEvent(token, variables)
+    result.id #return value is event id
+  end
+
   def move_one(token, provider_id, receiver_id, resource_id, event_note, ts, location_id)
     variables = {
       event: {

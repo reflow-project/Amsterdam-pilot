@@ -93,45 +93,29 @@ simulation("Swapshop Use Cycle", Date.today, Date.today + 1) do
     process do
       as_performer :a_swapshop
       pool_take :discarded
-      transform_batch_to_volume :waste, 0.2  #could do this with a raise instead of a produce too
-      transfer_volume :a_wieland, "recycle"
-      pool_put :waste_container
+      transform_batch_to_volume :waste, 0.2  #could model this with a raise instead of a produce too? discuss
+      transfer_volume :a_wieland, "recycle" #could specify a named resource for the receiver? discuss, 
+      #TODO transfer_batch should just check to see if the batch contains a volume resource instead of using transfer_volume here
+      pool_put :waste_container #TODO this should be a volume pool, by checking the resource specification of :waste
     end
   end
 
-  # event swap_inspect
-  # cron 1
-  # as_performer a_swapshop
-  # take_garments
-  # pass_batch .5
-  # put_inventory
-  # transfer_fail a_swapshop a_wieland 
+  event :repair, "repair a garment" do
+    schedule cron: 1
+    process do
+      as_performer :a_consumer
+      pool_take :closet, 1
+      transfer_custody_batch :a_repairshop, "to repair"
 
-  # event swap_out
-  # cron 1 (todo: but not on mondays and tuesdays)
-  # as_performer a_swapshop
-  # inventory_take 1-5
-  # transfer_batch a_swapshop <random_consumer>
-  # as_performer <random_consumer>
-  # pool_put :closet
+      as_performer :a_repairshop
+      modify_batch "refitting buttons"
 
-  # event wear
-  # cron 0.5 #two random consumers wear a trackable garment each day?
-  # as_performer <random_consumer>
-  # pool_take :closet 1
-  # use_batch "wear"
-
-  # event repair
-  # cron 4
-  #  as_performer <random_consumer>
-  # pool_take :closet 1
-  # transfer_custody a_<random_consumer> a_repairshop
-  # pool_put :in_repair
-
-  # event repair_done
-  # on_event repair with_delay 1-5
-  # pool_take
-  # batch_transfer consumer
+      transfer_custody_batch :a_consumer, "fixed"
+      as_performer :a_consumer
+      use_batch "wearing my fixed stuff, i look great"
+      pool_put :closet
+    end
+  end
  
 end
 
