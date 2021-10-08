@@ -95,7 +95,7 @@ class ReflowOSClient
     result.data.my_agent.id
   end
 
-  # produce one resource 
+  # produce one piece resource 
   # token is bearer token used to perform as_agent
   # agent_id is the agent id that produces the resource
   # name is the name of the resource (what we're making)
@@ -130,6 +130,34 @@ class ReflowOSClient
 
     result = performEvent(token, variables)
     result.resource_inventoried_as.id #return value is created item id
+  end
+
+  #produce a resource that is a volume (has unit and amount => other than om2:one)
+  #e.g. kg, 200
+  def produce_volume(token, agent_id, name, location_id, event_note, res_note, ts, unit, amount)
+    variables = {
+      event: {
+        note: event_note,
+        action: "produce",
+        provider: agent_id,
+        receiver: agent_id,
+        hasPointInTime: ts,
+        resourceQuantity: {
+          "hasUnit": unit, 
+          "hasNumericalValue": amount 
+        }
+      },
+      newInventoriedResource: { 
+        name: name,
+        tags: [],
+        note: res_note,
+        currentLocation: location_id 
+      }
+    }
+
+    result = performEvent(token, variables)
+    result.resource_inventoried_as.id #return value is created item id
+
   end
 
   # produce a new empty container resource (stock or transfer container)
@@ -216,6 +244,27 @@ class ReflowOSClient
     result.id #return value is event id
   end
  
+  def transfer_volume(token, provider_id, receiver_id, resource_id, event_note, ts, location_id, unit, amount)
+    variables = {
+      event: {
+        note: event_note,
+        action: "transfer",
+        provider: provider_id,
+        receiver: receiver_id,
+        hasPointInTime: ts,
+        resourceInventoriedAs: resource_id,
+        #TODO probably also need to specify the volume id on the receiving side
+        atLocation: location_id, 
+        resourceQuantity: {
+          hasNumericalValue: amount,
+          hasUnit: unit, 
+        }
+      }
+    }
+    
+    result = performEvent(token, variables)
+    result.id 
+  end
 
   # transfer a resource, (th)
   def transfer_one(token, provider_id, receiver_id, resource_id, event_note, ts, location_id)
@@ -284,7 +333,7 @@ class ReflowOSClient
   Result = Struct.new(:id) #fake a good result TODO: fix this
 
   def performEvent(token, variables)
-    sleep 1 #delay not to go to fast
+    sleep 0.5 #delay not to go to fast
     result = ReflowOS::Client.query(ReflowOS::EventQuery, context: {token: token}, variables: variables)
     if result == nil or result.data == nil or result.data.create_economic_event == nil
       puts "REFLOW OS ERROR!!!: #{result.original_hash["errors"][0]["message"]} variables: #{variables}"

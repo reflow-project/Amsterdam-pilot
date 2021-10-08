@@ -1,7 +1,7 @@
 require 'date'
 require 'dotenv/load'
 require_relative 'reflow_os_client.rb'
-
+ 
 #dsl for generating value flow simulation 
 # this simulation first generate all the necessary operations in a setup phase and a timetable
 # then executes the setup phase and when it's done the timetable on entry at a time using graphql requests with delays in between
@@ -379,6 +379,12 @@ def pass_batch(fraction)
   $context[:batch_failed] = failed # in case we want to do something with this
 end
 
+#set context batch to failed items
+def failed_take
+  failed_items = $context[:batch_failed]
+  $context[:batch] = failed_items
+end
+
 # perform a consume verb, if a fraction is specified operate on part of the batch, 
 # default operate on everything
 def consume_batch
@@ -451,6 +457,54 @@ def action_produce_batch(items)
   puts "graphql PRODUCE #{items.count} items by #{performer}"
 end
 
+# transfers each item in the context batch 
+# from the current performer
+# to the receiver
+def transfer_batch(receiver, label)
+  performer = $context[:process_performer]
+  provider = $agents[performer]
+  receiver = $agents[receiver]
+  date = $context[:date]
+  items = $context[:batch]
+  location_id =  receiver[:location]
+
+  items.each do |item|
+    event_id = $client.transfer_one(
+      provider[:token],
+      provider[:agent_id],
+      receiver[:agent_id],
+      item[:id],
+      "#{label} Batch Transfer",
+      date.iso8601,
+      location_id) 
+    puts "Created Reflow OS Transfer event: #{event_id}"
+  end
+end
+
+#does a volume transfer on all items in the context batch
+def transfer_volume(receiver, label)
+  performer = $context[:process_performer]
+  provider = $agents[performer]
+  receiver = $agents[receiver]
+  date = $context[:date]
+  items = $context[:batch]
+  location_id =  receiver[:location]
+
+  items.each do |item|
+    event_id = $client.transfer_volume(
+      provider[:token],
+      provider[:agent_id],
+      receiver[:agent_id],
+      item[:id],
+      "#{label} Volume Transfer",
+      date.iso8601,
+      location_id,
+      item[:unit],
+      item[:amount]) 
+    puts "Created Reflow OS Transfer event: #{event_id}"
+  end
+end
+
 def transfer_container(container_key, provider, receiver)
  
   provider = $agents[provider]
@@ -474,16 +528,6 @@ def transfer_container(container_key, provider, receiver)
     date.iso8601,
     location_id) 
 
-  #also do a move from provider to receiver (by provider)
-#   event_id = $client.move_one(
-#     provider[:token],
-#     provider[:agent_id],
-#     receiver[:agent_id],
-#     container_id,
-#     "#{resource_label} Container Transfer",
-#     date.iso8601,
-#     location_id) 
-
     puts "Created Reflow OS TRANSFER event: #{event_id}"
 end
 
@@ -493,4 +537,35 @@ def pack_container(container_key)
       consume_batch 
       container_put container_key
       produce_container container_key 
+end
+
+#consumes the items in the batch, transforms to type of output
+#each item in the batch will add the fraction to the unit of the output 
+#and place the transformed result in the process batch
+def transform_batch_to_volume(resource_key, fraction)
+  in_items = $context[:batch]
+  out_item = $resources[resource_key][:generator].call
+  out_item[:amount] = in_items.count * fraction
+  consume_batch
+ 
+  resource_label = $resources[resource_key][:label]
+  performer = $context[:process_performer]
+  agent = $agents[performer]
+  date = $context[:date]
+ 
+  out_item[:id] = $client.produce_volume(
+          agent[:token], 
+          agent[:agent_id], 
+          resource_label, 
+          agent[:location],
+          "transform batch to volume #{$context[:agent_key]} - #{$context[:date]}",
+          out_item[:description],
+          date.iso8601,
+          out_item[:unit],
+          out_item[:amount]
+          )
+  out_item[:created_by] = agent 
+  out_item[:created_at_day] = $context[:date].iso8601
+
+  $context[:batch] = [out_item]
 end
