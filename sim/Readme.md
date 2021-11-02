@@ -2,6 +2,15 @@
 This folder contains software to 'simulate' value flows in in Reflow OS, without having to write GraphQL queries by hand.
 It is is an extension on the dsl used to create Value Flow diagrams in the same repository. The idea is to declaratively describe a scenario on a high level, but with control over duration, amounts of resources, frequencies of and dependencies between events for a scenario.
 
+## Running the Amsterdam scenarios
+There are two scenario's for Amsterdam each in their own subdirectory, 'swapshop' and 'zorgschorten'.
+Steps to run a scenario:
+
+- 0. make sure that you have all ruby dependencies installed (bundle install, or see the Gemfile)
+- 1. make sure that you are working with a fresh reflow-os instance that is set up locally on port 4000, see reset_db.sh
+- 2. change to the scenario subdirectory and run ``ruby setup_environment.rb`` it will create a new .env file in the scenario subdirectory, containing the agents, locations and units that are needed for the scenario
+- 3. run ``ruby simulation.rb`` or similar to start the simulation
+
 ## Features supported so far 
 The simulation software at the moment aims to support the two scenario's in the Amsterdam pilot. 
 Right now only the ValueFlow features that are necessary for the 'medical gowns' (zorgschorten) scenario have been developed. A scenario for the 'Swap shop' scenario will follow. We expect big overlap between the two scenario's.
@@ -105,18 +114,6 @@ The following command directives are available for chaining together in a proces
 - __use_batch__: perform a vf:use economic event on each item in the *context batch*
 - __modify_batch__: perform a vf:modify economic event on each item in the *context batch*
 - __pass_batch__: remove 'amount' items from the *context batch* and place them in the *failed context batch*. the 'passed' items remain in the default *context batch*. this can be used for quality inspection / failure scenarios etc.
-
-## How do I use this?
-Currently the simulation works with a local instance of a reflow flavoured bonfirfe instance running on localhost:4000.
-All agents and locations and the 'om2:one' unit referred to in the simulation should exist beforehand. (e.g. created with graphiql)
-
-After manually setting that up you can for example start the simulation by calling your scenario. e.g.
-
-```$ ruby zorgschorten_simple.rb```
-
-The simulation will start by setting up the initial state, creating all resources in necessary in reflow os.
-Then it will create a calendar of scheduled events for each day between the provided start and end date by processing all the *event* directives and their interdependencies according to the parameter specifed in the 'schedule' of the events.
-After that the simulation immediately starts the first day of the simulation and performs all the events for that day synchronously, one at a time until all events for that day are complete. Then it processes the next day and continues to do so until the end date.
 
 ## Example scenario output
 
