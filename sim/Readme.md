@@ -7,8 +7,8 @@ There are two scenario's for Amsterdam each in their own subdirectory, 'swapshop
 Steps to run a scenario:
 
 - 0. make sure that you have all ruby dependencies installed (bundle install, or see the Gemfile)
-- 1. make sure that you are working with a fresh reflow-os instance that is set up locally on port 4000, see reset_db.sh
-- 2. change to the scenario subdirectory and run ``ruby setup_environment.rb`` it will create a new .env file in the scenario subdirectory, containing the agents, locations and units that are needed for the scenario
+- 1. make sure that you are working with a fresh reflow-os instance that is set up locally on port 4000, see ``reset_db.sh``, double check the reflow os installation directory
+- 2. change to the scenario subdirectory and run ``ruby setup_environment.rb`` it will create a new .env file in the scenario subdirectory, containing the agents, locations and units that are needed for the scenario, also here; double check the reflow os installation directory
 - 3. run ``ruby simulation.rb`` or similar to start the simulation
 
 ## Features supported so far 
