@@ -1,4 +1,4 @@
-require_relative 'dsl.rb'
+require_relative '../dsl.rb'
 require 'securerandom'
 
 # Simple scenario
@@ -36,28 +36,28 @@ simulation("Swapshop Use Cycle", Date.today, Date.today + 1) do
   end
 
   agent :a_swapshop, "Swapshop Amsterdam" do
-    authenticate "SWAPSHOP_EMAIL", "SWAPSHOP_PASSWORD"
-    location "SWAPSHOP_LOCATION"
+    authenticate "AGENT_SWAPSHOP_EMAIL", "AGENT_SWAPSHOP_PASSWORD"
+    location "AGENT_SWAPSHOP_LOCATION"
     inventory :rack, "rack", :garment, 10
     pool :discarded, "waste", :garment, 0
   end
 
   agent :a_consumer, "Sir Swapsalot" do
-    authenticate "CONS1_EMAIL", "CONS1_PASSWORD"
-    location "CONS1_LOCATION"
+    authenticate "AGENT_CONSUMER_EMAIL", "AGENT_CONSUMER_PASSWORD"
+    location "AGENT_CONSUMER_LOCATION"
     pool :closet, "closet", :garment, 5
   end
 
   agent :a_wieland, "Wieland" do
-    authenticate "WIE_EMAIL", "WIE_PASSWORD"
-    location "WIE_LOCATION"
+    authenticate "AGENT_WIELAND_EMAIL", "AGENT_WIELAND_PASSWORD"
+    location "AGENT_WIELAND_LOCATION"
     pool :waste_container, "waste container 1", :waste , 0
     #because this pool is of type wasste, it has a volume unit so we can create only one 'wallet' resource that we can reuse
   end
 
   agent :a_repairshop, "Miss Fixit" do
-    authenticate "REPAIRSHOP_EMAIL", "REPAIRSHOP_PASSWORD"
-    location "REPAIRSHOP_LOCATION"
+    authenticate "AGENT_REPAIRSHOP_EMAIL", "AGENT_REPAIRSHOP_PASSWORD"
+    location "AGENT_REPAIRSHOP_LOCATION"
   end
 
   #day 1
@@ -105,12 +105,14 @@ simulation("Swapshop Use Cycle", Date.today, Date.today + 1) do
     process do
       as_performer :a_consumer
       pool_take :closet, 1
-      transfer_custody_batch :a_repairshop, "to repair"
+      #transfer_custody_batch :a_repairshop, "to repair" #can't do transfer custody, because we can't do a repair then
+      transfer_batch :a_repairshop, "to repair"
 
       as_performer :a_repairshop
       modify_batch "refitting buttons"
 
-      transfer_custody_batch :a_consumer, "fixed"
+      #transfer_custody_batch :a_consumer, "fixed" #can't do this because of reflow os implementation issue
+      transfer_batch :a_consumer, "fixed"
       as_performer :a_consumer
       use_batch "wearing my fixed stuff, i look great"
       pool_put :closet

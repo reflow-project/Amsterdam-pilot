@@ -7,6 +7,7 @@ module ReflowOS
 
     # setup graphql client
     HTTP = GraphQL::Client::HTTP.new("http://localhost:4000/api/graphql") do
+    # HTTP = GraphQL::Client::HTTP.new("http://135.181.35.156:4000/api/graphql") do
       def headers(context)
         headers = {}
         headers["User-Agent"] = "Simulation Client"
@@ -34,6 +35,18 @@ module ReflowOS
     }
     GRAPHQL
     LoginQuery = ReflowOS::Client.parse(loginTemplate) #client.query expects this to be a constant
+
+	locationTemplate = <<-'GRAPHQL'
+		mutation($location: SpatialThingCreateParams!){
+			createSpatialThing(spatialThing: $location) {
+    			spatialThing {
+      				id
+    			}
+  			}	
+	}
+    GRAPHQL
+    LocationQuery = ReflowOS::Client.parse(locationTemplate) #client.query expects this to be a constant
+
 
     # define me query
     #
@@ -74,6 +87,17 @@ module ReflowOS
     }
     GRAPHQL
     EventQuery = ReflowOS::Client.parse(eventTemplate) 
+
+    unitTemplate = <<-'GRAPHQL'
+	mutation($unit:UnitCreateParams!) {
+	  createUnit(unit: $unit) {
+		unit {
+		  id
+		}
+	  }
+	}
+    GRAPHQL
+    UnitQuery = ReflowOS::Client.parse(unitTemplate) 
 end
 
 class ReflowOSClient
@@ -93,6 +117,33 @@ class ReflowOSClient
   def me(token)
     result = ReflowOS::Client.query(ReflowOS::MeQuery, context: {token: token}) 
     result.data.my_agent.id
+  end
+
+  # create and return id for a om2:one unit
+  def unit(token,label,symbol)
+    variables = {
+      unit: {
+        label: label,
+        symbol: symbol
+      }
+    }
+    result = ReflowOS::Client.query(ReflowOS::UnitQuery, variables: variables, context: {token: token}) 
+    result.data.create_unit.unit.id
+  end
+
+  def location(token,lat,lon,address,name,note)
+	variables = {
+	  location: {
+		name: name,
+		alt: 0,
+		lat: lat,
+		long: lon,
+		mappableAddress: address,
+		note: note
+	  }	
+	}
+	result = ReflowOS::Client.query(ReflowOS::LocationQuery, variables: variables, context: {token: token}) 
+    result.data.create_spatial_thing.spatial_thing.id
   end
 
   # produce one piece resource 
