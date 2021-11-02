@@ -1,4 +1,4 @@
-require_relative 'dsl.rb'
+require_relative '../dsl.rb'
 require 'securerandom'
 # use / clean cycle only for now
 # 

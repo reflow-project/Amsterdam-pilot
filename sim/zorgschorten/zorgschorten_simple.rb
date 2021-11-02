@@ -1,4 +1,4 @@
-require_relative 'dsl.rb'
+require_relative '../dsl.rb'
 require 'securerandom'
 
 simulation("Transfer", Date.today - 1, Date.today) do 
