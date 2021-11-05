@@ -24,12 +24,18 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
 end
 ```
 
+### Units
+First you declare units used in the simulation.
+```
+unit :u_piece, "om2:one", "#"
+```
+
 ### Resources
 
-Inside the simulation can declare identifiable *resource* types, and attach a generator block to create fake instances of the resource, e.g.
+You can then declare identifiable *resource* types, with a unit, and attach a generator block to create fake instances of the resource, e.g.
 
 ``` 
-resource :gown, "Gown" do
+resource :gown, "Gown", :u_piece do
     rid = SecureRandom.uuid
     {:tracking_id => "http://cleanlease.nl/zs/#{rid}", :description => "Clean Lease Schort: #{rid}"}
   end
@@ -43,12 +49,14 @@ container :gown_dirty_container, "Gown Container (dirty)", :gown
 
 ### Agents
 
-The *agent* directive is used to declare agents that take part in the scenario. For each agent you can specify the credentials that should be used to login Reflow OS. You can specify the default location of the agent, and declare *pools* or *inventories* (container resource used for stocks) of identifiable resources that are owned by this agent at the start of the simulation. You can quantify the number of resources in the pool/inventory, they will be generated according to the generator block in the resource directive e.g.
+The *agent* directive is used to declare agents that take part in the scenario. User accounts are made on demand. For each agent you can specify the credentials that should be used to login Reflow OS. You can specify the default location of the agent, and declare *pools* or *inventories* (container resource used for stocks) of identifiable resources that are owned by this agent at the start of the simulation. You can quantify the number of resources in the pool/inventory, they will be generated according to the generator block in the resource directive e.g.
 
 ```
 agent :a_hospital, "OLVG" do
-      authenticate "AGENT_OLVG_EMAIL", "AGENT_OLVG_PASSWORD"
-      location "AGENT_OLVG_LOCATION"
+      location 52.35871773455108, 4.916762398221842,
+	 	"Oosterpark 9, 1091 AC Amsterdam",
+		"OLVG locatie oost",
+        "olvg.nl"
       pool :gown_in_use, "Gowns (in use)", :gown, 10 
   end
 
