@@ -14,8 +14,13 @@ require 'securerandom'
 # One day after repair, the garment comes back to the consumer (transfer-custody rep back to consumer)
 #
 simulation("Swapshop Use Cycle", Date.today, Date.today + 1) do
+
+  #declare units used in this simulation
+  unit :u_kg, "kg", "kg"
+  unit :u_piece, "om2:one", "#"
+
   $rid = 0
-  resource :garment, "Garment" do
+  resource :garment, "Garment", :u_piece do
     $rid += 1 
     # this id is not the reflow os id, but the id used by cleanlease to track the invidual gown
     garment_types = %w(jeans t-shirt blouse skirt jacket bag socks tanktop shoes shorts)
@@ -28,36 +33,43 @@ simulation("Swapshop Use Cycle", Date.today, Date.today + 1) do
     }
   end
 
-  resource :waste, "Waste" do
+  resource :waste, "Waste", :u_kg do
     {
-      :description => "Assorted garment waste",
-      :unit => ENV["UNIT_KG"] 
+      :description => "Assorted garment waste"
     }
   end
 
-  agent :a_swapshop, "Swapshop Amsterdam" do
-    authenticate "AGENT_SWAPSHOP_EMAIL", "AGENT_SWAPSHOP_PASSWORD"
-    location "AGENT_SWAPSHOP_LOCATION"
+  agent :a_swapshop, "Swapshop" do
+    location 52.38305176049192, 4.886653427044765,
+	 	"Haarlemmerdijk 89, 1013 KC Amsterdam",
+		"The Swap Shop",
+		"We doen ook herstelwerk"
     inventory :rack, "rack", :garment, 10
     pool :discarded, "waste", :garment, 0
   end
 
-  agent :a_consumer, "Sir Swapsalot" do
-    authenticate "AGENT_CONSUMER_EMAIL", "AGENT_CONSUMER_PASSWORD"
-    location "AGENT_CONSUMER_LOCATION"
+  agent :a_consumer, "Participant" do
+    location 52.372914232734466, 4.900383569253214,
+	 	"Nieuwmarkt 4, 1012 CR Amsterdam",
+		"Consumer woont hier",
+		"In een kasteel"    
     pool :closet, "closet", :garment, 5
   end
 
   agent :a_wieland, "Wieland" do
-    authenticate "AGENT_WIELAND_EMAIL", "AGENT_WIELAND_PASSWORD"
-    location "AGENT_WIELAND_LOCATION"
+    location 52.51345006821827, 4.7785117343772345,
+	 	"Handelsweg 8, 1521 NH Wormerveer",
+		"Wieland Textiles",
+		"wieland.nl"    
     pool :waste_container, "waste container 1", :waste , 0
     #because this pool is of type wasste, it has a volume unit so we can create only one 'wallet' resource that we can reuse
   end
 
-  agent :a_repairshop, "Miss Fixit" do
-    authenticate "AGENT_REPAIRSHOP_EMAIL", "AGENT_REPAIRSHOP_PASSWORD"
-    location "AGENT_REPAIRSHOP_LOCATION"
+  agent :a_repairshop, "Repairshop" do
+    location 52.38305176049192, 4.886653427044765,
+	 	"Haarlemmerdijk 89, 1013 KC Amsterdam",
+		"Miss Fixit Repair",
+		"Herstelwerk"
   end
 
   #day 1
@@ -120,5 +132,3 @@ simulation("Swapshop Use Cycle", Date.today, Date.today + 1) do
   end
  
 end
-
-

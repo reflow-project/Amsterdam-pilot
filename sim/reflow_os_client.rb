@@ -5,7 +5,7 @@ require "byebug"
 
 module ReflowOS
 
-    # setup graphql client
+    # setup graphql client 
     HTTP = GraphQL::Client::HTTP.new("http://localhost:4000/api/graphql") do
     # HTTP = GraphQL::Client::HTTP.new("http://135.181.35.156:4000/api/graphql") do
       def headers(context)
@@ -102,6 +102,24 @@ end
 
 class ReflowOSClient
 
+  # constants used for make calls (to create users)
+  $RO_MAKE_PATH="~/Projects/reflow_os/reflow-os/"
+  $ID_REGEX = /"id"\s=>\s"(?<id>\w+)"/
+
+  # makes an agent in reflow os through a make call
+  # returns the reflow id of the created agent
+  def make_agent(email, pass, user, name)
+    result = `cd #{$RO_MAKE_PATH};make email=#{email} pass=#{pass} user=#{user} name=#{name} tasks.create_user 2>&1`  
+    if matches = result.match($ID_REGEX)
+      return matches[:id]
+    end
+    #we should never come here, quit program
+    puts "make agent failed: #{name} #{email}, try from fresh db?"
+    puts result
+    return nil
+  end
+
+
   # login to retrieve bearer token
   def login(email, password) 
 
@@ -154,7 +172,7 @@ class ReflowOSClient
   # location_id should exist in reflow os
   # event_note says something about the event, let's include the simulated date here
   # res_note says something about the resource
-  def produce_one(token, agent_id, name, tracking_identifier, location_id, event_note, res_note, ts, stock_id = nil) 
+  def produce_one(token, agent_id, name, tracking_identifier, location_id, event_note, res_note, ts, unit_id, stock_id = nil) 
     variables = {
       event: {
         note: event_note,
@@ -163,7 +181,7 @@ class ReflowOSClient
         receiver: agent_id,
         hasPointInTime: ts,
         resourceQuantity: {
-          "hasUnit": ENV["UNIT_OM2"], #maybe this unit should come from simulation?
+          "hasUnit": unit_id, 
           "hasNumericalValue": 1
         }
       },
@@ -185,7 +203,7 @@ class ReflowOSClient
 
   #produce a resource that is a volume (has unit and amount => other than om2:one)
   #e.g. kg, 200
-  def produce_volume(token, agent_id, name, location_id, event_note, res_note, ts, unit, amount)
+  def produce_volume(token, agent_id, name, location_id, event_note, res_note, ts, unit_id, amount)
     variables = {
       event: {
         note: event_note,
@@ -194,7 +212,7 @@ class ReflowOSClient
         receiver: agent_id,
         hasPointInTime: ts,
         resourceQuantity: {
-          "hasUnit": unit, 
+          "hasUnit": unit_id, 
           "hasNumericalValue": amount 
         }
       },
@@ -218,7 +236,7 @@ class ReflowOSClient
   # location_id should exist in reflow os
   # event_note says something about the event, let's include the simulated date here
   # res_note says something about the resource
-  def produce_empty_container(token, agent_id, name, location_id, event_note, res_note, ts) 
+  def produce_empty_container(token, agent_id, name, location_id, event_note, res_note, ts, unit_id) 
     variables = {
       event: {
         note: event_note,
@@ -227,7 +245,7 @@ class ReflowOSClient
         provider: agent_id,
         receiver: agent_id,
         resourceQuantity: {
-          "hasUnit": ENV["UNIT_OM2"], #maybe this unit should come from simulation?
+          "hasUnit": unit_id, 
           "hasNumericalValue": 0
         }
       },
@@ -308,7 +326,7 @@ class ReflowOSClient
         atLocation: location_id, 
         resourceQuantity: {
           hasNumericalValue: amount,
-          hasUnit: unit, 
+          hasUnit: unit 
         }
       }
     }
@@ -318,7 +336,7 @@ class ReflowOSClient
   end
 
   # transfer a resource, (th)
-  def transfer_one(token, provider_id, receiver_id, resource_id, event_note, ts, location_id)
+  def transfer_one(token, provider_id, receiver_id, resource_id, event_note, ts, location_id, unit_id)
     variables = {
       event: {
         note: event_note,
@@ -330,7 +348,7 @@ class ReflowOSClient
         atLocation: location_id, #this is not the location it ends up after the event...
         resourceQuantity: {
           hasNumericalValue: 1,
-          hasUnit: ENV["UNIT_OM2"], #maybe this unit should come from simulation?
+          hasUnit: unit_id
         }
       }
     }
@@ -339,7 +357,7 @@ class ReflowOSClient
     result.id #return value is event id
   end
 
-  def transfer_custody_one(token, provider_id, receiver_id, resource_id, event_note, ts, location_id)
+  def transfer_custody_one(token, provider_id, receiver_id, resource_id, event_note, ts, location_id, unit_id)
     variables = {
       event: {
         note: event_note,
@@ -351,7 +369,7 @@ class ReflowOSClient
         atLocation: location_id, #this is not the location it ends up after the event...
         resourceQuantity: {
           hasNumericalValue: 1,
-          hasUnit: ENV["UNIT_OM2"], #maybe this unit should come from simulation?
+          hasUnit: unit_id 
         }
       }
     }
@@ -360,7 +378,7 @@ class ReflowOSClient
     result.id #return value is event id
   end
 
-  def move_one(token, provider_id, receiver_id, resource_id, event_note, ts, location_id)
+  def move_one(token, provider_id, receiver_id, resource_id, event_note, ts, location_id, unit_id)
     variables = {
       event: {
         note: event_note,
@@ -372,7 +390,7 @@ class ReflowOSClient
         atLocation: location_id, #this is not the location it ends up after the event...
         resourceQuantity: {
           hasNumericalValue: 1,
-          hasUnit: ENV["UNIT_OM2"], #maybe this unit should come from simulation?
+          hasUnit: unit_id
         }
       }
     }

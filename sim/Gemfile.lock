@@ -11,6 +11,8 @@ GEM
     domain_name (0.5.20190701)
       unf (>= 0.0.5, < 1.0.0)
     dotenv (2.7.6)
+    faker (2.19.0)
+      i18n (>= 1.6, < 2)
     graphql (1.12.17)
     graphql-client (0.17.0)
       activesupport (>= 3.0)
@@ -43,6 +45,7 @@ PLATFORMS
 
 DEPENDENCIES
   dotenv
+  faker
   graphql-client
   json
   rest-client

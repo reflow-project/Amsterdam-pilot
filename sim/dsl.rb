@@ -1,6 +1,8 @@
 require 'date'
 require 'dotenv/load'
+require 'faker'
 require_relative 'reflow_os_client.rb'
+
  
 #dsl for generating value flow simulation 
 # this simulation first generate all the necessary operations in a setup phase and a timetable
@@ -17,7 +19,24 @@ def simulation(label, date_start = Date.today, date_end = Date.today + 365)
   $nr_of_days.times do  |index|
     $planned_events[index] = [] #no events planned
   end
-  yield #setup / generate agents, resources and schedule events
+
+  # before yielding, create and authenticate the admin user
+  # used for creating units and locations
+  email = Faker::Internet.email
+  pw = Faker::Alphanumeric.alphanumeric(number: 10, min_alpha: 3)
+  name = Faker::Name.unique.first_name 
+  id = $client.make_agent(email,pw,name,"Admin")
+  if(id != nil)
+    $context[:agent_key] = :a_admin
+    $agents[:a_admin] = {:label => "Admin", :email => email, :password => pw}
+    authenticate(email,pw)
+  else
+    puts "creating admin failed"
+    exit
+  end
+  puts "Created admin: #{id}"
+
+  yield #setup / generate units, locations, agents, resources and schedule events
 
   # show internal state after setup
   puts "--- SETUP ---"
@@ -38,6 +57,11 @@ def simulation(label, date_start = Date.today, date_end = Date.today + 365)
 end
 
 def print_state
+  puts "UNITS"
+  $units.keys.each do |key|
+    puts "#{key}: #{$units[key]}"
+  end
+
   puts "AGENTS"
   $agents.keys.each do |key|
     puts "#{key}: #{$agents[key]} "
@@ -59,35 +83,50 @@ end
 # setup an agent
 $agents = Hash.new
 def agent(key, label)
-  $agents[key] = {:label => label}
+  #create and authenticate the agent
+  email = Faker::Internet.email
+  pw = Faker::Alphanumeric.alphanumeric(number: 10, min_alpha: 3)
+  name = Faker::Name.unique.first_name 
+  id = $client.make_agent(email,pw,name,label)
+  puts "created agent: #{id}"
+  $agents[key] = {:label => label, :email => email, :password => pw}
   $context[:agent_key] = key #used as context for block 
+  authenticate(email, pw)
   yield if block_given?
 end
 
 # check credentials and login as an agent,
 # using credentials from enviroment
-def authenticate(email_key, pw_key)
-  Dotenv.require_keys(email_key, pw_key)  
+def authenticate(email, pw)
   key = $context[:agent_key]
-  token = $client.login(ENV[email_key],ENV[pw_key])
+  token = $client.login(email,pw)
   $agents[key][:token] = token # save for reuse
   agent_id = $client.me(token)
   $agents[key][:agent_id] = agent_id #TODO use the myagent call instead
 end
 
-def location(location_key)
-  Dotenv.require_keys(location_key)  
+def location(lat,lon,address,name,note)
   key = $context[:agent_key]
-  location = ENV[location_key]
+  token = $agents[key][:token]
+  location = $client.location(token,lat,lon,address,name,note) 
   $agents[key][:location] = location # save for reuse
+end
+
+# setup a unit, e.g. om2:one
+# created with the admin user by default
+$units = Hash.new
+def unit(key, label, symbol)
+  token = $agents[:a_admin][:token]
+  $units[key] = $client.unit(token, label, symbol) 
 end
 
 # setup a resource type e.g. gown, 
 # expects a block that can be used to generate a resource instance, a hash that contains two keys
 # :rid and :description
 $resources = Hash.new 
-def resource(key, label, &proc)
-  $resources[key] = {:label => label, :generator => proc}
+def resource(key, label, unit_key, &proc)
+  unit_id = $units[unit_key]
+  $resources[key] = {:label => label, :unit => unit_id, :generator => proc}
 end
 
 # a collection of resources that can be used for transfers
@@ -110,8 +149,8 @@ def pool(key, label, resource_key, amount = 0)
   if(amount > 0)
       amount.times do 
         item = $resources[resource_key][:generator].call
+        item[:unit] = $resources[resource_key][:unit]
         resource_label = $resources[resource_key][:label]
-
         # first time should produce
         agent = $agents[$context[:agent_key]]
         date = $context[:date]
@@ -126,7 +165,9 @@ def pool(key, label, resource_key, amount = 0)
           agent[:location],
           "seed pool for #{$context[:agent_key]} - #{$context[:date]}",
           item[:description],
-          date.iso8601)
+          date.iso8601,
+          item[:unit])
+
         item[:created_by] = $context[:agent_key]
         item[:created_at_day] = $context[:date].iso8601
         items << item
@@ -142,6 +183,7 @@ def inventory(key, label, resource_key, amount = 0)
   raise "resource not found: #{type}" if not $resources.key? resource_key 
 
   resource_label = $resources[resource_key][:label]
+  unit_id = $resources[resource_key][:unit]
   # first time should produce
   agent = $agents[$context[:agent_key]]
   date = $context[:date]
@@ -153,7 +195,8 @@ def inventory(key, label, resource_key, amount = 0)
           agent[:location],
           "seed event for stock resource #{$context[:agent_key]} - #{$context[:date]}",
           "#{resource_label} Stock",
-          date.iso8601)
+          date.iso8601,
+          unit_id)
 
   items = []
  
@@ -161,7 +204,7 @@ def inventory(key, label, resource_key, amount = 0)
   if(amount > 0)
       amount.times do 
         item = $resources[resource_key][:generator].call
-        
+        item[:unit] = $resources[resource_key][:unit]
         # create the item in reflow os and save the id for future reference
         # and place them in stock
         item[:id] = $client.produce_one(
@@ -173,6 +216,7 @@ def inventory(key, label, resource_key, amount = 0)
           "seed pool for #{$context[:agent_key]} - #{$context[:date]}",
           item[:description],
           date.iso8601,
+          item[:unit],
           stock_id)
  
         item[:created_by] = $context[:agent_key]
@@ -293,7 +337,6 @@ def unpack_container(container_key)
   container_take(container_key)  # places them in batch
   packed_items = $context[:batch] 
   unpacked_items = []
-
   #recreate as own
   packed_items.each do |item| 
     item[:id] = $client.produce_one(
@@ -304,7 +347,8 @@ def unpack_container(container_key)
       agent[:location],
       "unpacked by #{$context[:process_performer]} - #{$context[:date]}",
       item[:description],
-      date.iso8601)
+      date.iso8601,
+      item[:unit])
     item[:created_by] = $context[:process_performer]
     item[:created_at_day] = $context[:date].iso8601
     unpacked_items << item 
@@ -476,7 +520,8 @@ def transfer_batch(receiver, label)
       item[:id],
       "#{label} Batch Transfer",
       date.iso8601,
-      location_id) 
+      location_id,
+      item[:unit]) 
     puts "Created Reflow OS Transfer event: #{event_id}"
   end
 end
@@ -500,7 +545,8 @@ def transfer_custody_batch(receiver, label)
       item[:id],
       "#{label} Batch Transfer Custody",
       date.iso8601,
-      location_id) 
+      location_id,
+      item[:unit]) 
     puts "Created Reflow OS Transfer Custody event: #{event_id}"
   end
 end
@@ -537,6 +583,7 @@ def transfer_container(container_key, provider, receiver)
 
   resource_key = $containers[container_key][:resource_key]
   resource_label = $resources[resource_key][:label]
+  unit_id = $resources[resource_key][:unit]
   container_id = $containers[container_key][:id]
   location_id =  receiver[:location]
 
@@ -550,7 +597,8 @@ def transfer_container(container_key, provider, receiver)
     container_id,
     "#{resource_label} Container Transfer",
     date.iso8601,
-    location_id) 
+    location_id,
+    unit_id) 
 
     puts "Created Reflow OS TRANSFER event: #{event_id}"
 end
@@ -569,6 +617,7 @@ end
 def transform_batch_to_volume(resource_key, fraction)
   in_items = $context[:batch]
   out_item = $resources[resource_key][:generator].call
+  out_item[:unit] = $resources[resource_key][:unit]
   out_item[:amount] = in_items.count * fraction
   consume_batch
  
