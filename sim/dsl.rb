@@ -86,7 +86,7 @@ def agent(key, label)
   #create and authenticate the agent
   email = Faker::Internet.email
   pw = Faker::Alphanumeric.alphanumeric(number: 10, min_alpha: 3)
-  name = Faker::Name.unique.first_name 
+  name = "#{Faker::Name.unique.first_name}#{Faker::Number.number(digits: 4)}"
   id = $client.make_agent(email,pw,name,label)
   puts "created agent: #{id}"
   $agents[key] = {:label => label, :email => email, :password => pw}
