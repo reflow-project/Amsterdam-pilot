@@ -3,7 +3,9 @@ require 'securerandom'
 
 simulation("Transfer", Date.today - 1, Date.today) do 
 
-  resource :gown, "Gown" do
+  unit :u_piece, "om2:one", "#"
+
+  resource :gown, "Gown", :u_piece do
     rid = SecureRandom.uuid
     {:tracking_id => "http://cleanlease.nl/zs/#{rid}", :description => "Clean Lease Schort: #{rid}"}
   end
@@ -11,14 +13,18 @@ simulation("Transfer", Date.today - 1, Date.today) do
   container :a_container, "Gown Container (dirty)", :gown 
 
   agent :a_hospital, "OLVG" do
-    authenticate "AGENT_OLVG_EMAIL", "AGENT_OLVG_PASSWORD"
-    location "AGENT_OLVG_LOCATION"
+    location 52.35871773455108, 4.916762398221842,
+	 	"Oosterpark 9, 1091 AC Amsterdam",
+		"OLVG locatie oost",
+        "olvg.nl"
     pool :gowns, "Gowns", :gown, 1 #produces the one gown in the pool 
   end
 
-  agent :a_launderer, "Clean Lease Laundry Service" do
-    authenticate "AGENT_CLC_EMAIL", "AGENT_CLC_PASSWORD"
-    location "AGENT_CLC_LOCATION"
+  agent :a_launderer, "CleanLease_Laundry_Service" do
+    location 51.47240440868687, 5.412460440524406,
+	 	"De schakel 30, 5651 Eindhoven",
+		"CleanLease Eindhoven",
+		"Textile service provider"  
   end
 
   event :test, "Test pack, unpack, transfer, use and modify" do 

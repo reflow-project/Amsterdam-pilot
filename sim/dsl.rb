@@ -479,6 +479,7 @@ def produce_container(container_key)
   date = $context[:date]
   resource_key = $containers[container_key][:resource_key]
   resource_label = $resources[resource_key][:label]
+  unit_id = $resources[resource_key][:unit]
  
   #create a container resource in reflow os, put in the list of tracking id's as the manifest note  
   manifest = manifest_items.map{|item|item[:tracking_id]}.join(",")
@@ -490,7 +491,8 @@ def produce_container(container_key)
           agent[:location],
           "#{resource_label} Container",
           "Manifest: #{manifest}",
-          date.iso8601) #returns container id
+          date.iso8601, 
+          unit_id) #returns container id
 
   $containers[container_key][:id] = container_id
   puts "Created Reflow OS Container event: #{container_id}"

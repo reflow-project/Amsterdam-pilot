@@ -423,7 +423,7 @@ class ReflowOSClient
   Result = Struct.new(:id) #fake a good result TODO: fix this
 
   def performEvent(token, variables)
-    sleep 0.5 #delay not to go to fast
+    sleep 0.1 #delay not to go to fast
     result = ReflowOS::Client.query(ReflowOS::EventQuery, context: {token: token}, variables: variables)
     if result == nil or result.data == nil or result.data.create_economic_event == nil
       puts "REFLOW OS ERROR!!!: #{result.original_hash["errors"][0]["message"]} variables: #{variables}"

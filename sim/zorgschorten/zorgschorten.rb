@@ -18,12 +18,14 @@ require 'securerandom'
 #
 simulation("Zorgschorten", Date.today, Date.today + 30) do 
 
+  unit :u_piece, "om2:one", "#"
+
   # base data that needs to be present in ENV: 
   #
   # - unit om:2 => ENV[UNIT_OM2]
   # - authentication for each agent ENV[AGENT_OLVG_EMAIL] etc
   # - location for each agent ENV[AGENT_OLVG_LOCATION] etc, to be passed during setup 
-  resource :gown, "Gown" do
+  resource :gown, "Gown", :u_piece do
     rid = SecureRandom.uuid
     # this id is not the reflow os id, but the id used by cleanlease to track the invidual gown
     {:tracking_id => "http://cleanlease.nl/zs/#{rid}", :description => "Clean Lease Schort: #{rid}"}
@@ -41,31 +43,34 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
   # Either i can make more than one agent with one user account, or each agent is tied to a user account
   # Should be able to generate (fake) user accounts through graphql
   agent :a_hospital, "OLVG" do
-      authenticate "AGENT_OLVG_EMAIL", "AGENT_OLVG_PASSWORD"
-      location "AGENT_OLVG_LOCATION"
-      #pool :gown_in_use, "Gown Container (in use)", :gown, rand(400..500) # gowns in use in the hospital 
+      location 52.35871773455108, 4.916762398221842,
+	 	"Oosterpark 9, 1091 AC Amsterdam",
+		"OLVG locatie oost",
+        "olvg.nl"
+
       pool :gown_in_use, "Gown Container (in use)", :gown, 10 # gowns in use in the hospital 
       pool :gown_dirty_pool, "Gown (dirty)", :gown # gowns in the hamper in the hospital, defaults to zero
-      # should be populated in reflow os at seed time with a produce?
-      # or maybe a produce by tsc and and immediate transfer, 
   end
  
   # Clean Lease
-  agent :a_tsc, "Clean Lease Service" do 
-      authenticate "AGENT_CLS_EMAIL", "AGENT_CLS_PASSWORD"
-      location "AGENT_CLS_LOCATION"
+  agent :a_tsc, "CleanLease_Service" do 
+      location 51.47240440868687, 5.412460440524406,
+	 	"De schakel 30, 5651 Eindhoven",
+		"CleanLease Eindhoven",
+		"Textile service provider"       
+
       #inventory :gown_stock, "Gown (in stock)", :gown, rand(800..1000) # in stock in the tsc
       inventory :gown_stock, "Gown (in stock)", :gown, 20 # in stock in the tsc
-      # should be populated in reflow os at seed time with a produce?
   end
 
   #this agent is considered 'jit', and only deals with containers
   # Clean Lease
-  agent :a_launderer, "Clean Lease Laundry Service" do
-      authenticate "AGENT_CLC_EMAIL", "AGENT_CLC_PASSWORD"
-      location "AGENT_CLC_LOCATION"
+  agent :a_launderer, "CleanLease_Laundry" do
+      location 51.47240440868687, 5.412460440524406,
+	 	"De schakel 30, 5651 Eindhoven",
+		"CleanLease Eindhoven",
+		"Textile service provider"       
   end
-  # on delivery add the container to the in use pool 
   
   # every day between 5 and 10 in use gowns are put in the hamper 
   event :e_out_use, "Use (Discard)" do 
