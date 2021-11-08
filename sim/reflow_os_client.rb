@@ -1,6 +1,7 @@
 # graphql client for reflowos running on localhost
 require "graphql/client"
 require "graphql/client/http"
+require 'dotenv/load'
 require "byebug"
 
 module ReflowOS
@@ -103,7 +104,7 @@ end
 class ReflowOSClient
 
   # constants used for make calls (to create users)
-  $RO_MAKE_PATH="~/Projects/reflow_os/reflow-os/"
+  $RO_MAKE_PATH=ENV['REFLOW_OS_PATH'] 
   $ID_REGEX = /"id"\s=>\s"(?<id>\w+)"/
 
   # makes an agent in reflow os through a make call
