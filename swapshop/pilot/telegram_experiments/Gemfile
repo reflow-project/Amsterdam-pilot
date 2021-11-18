@@ -1,0 +1,6 @@
+source 'https://rubygems.org'
+ruby '3.0.1'
+gem 'telegram_bot'
+gem 'telegram-bot-ruby'
+gem 'chunky_png'
+gem 'quirc'
