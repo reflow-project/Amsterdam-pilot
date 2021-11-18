@@ -5,6 +5,8 @@
 #
 #   movies = Movie.create([{ name: 'Star Wars' }, { name: 'Lord of the Rings' }])
 #   Character.create(name: 'Luke', movie: movies.first)
+require 'dotenv/load'
+telegram_id = ENV['TELEGRAM_SEED_ID'] #for telegram id for dev purposes
 
 Resource.create(title: 'Groen roze bloemenprint maxi rok',
                 description: 'Groen roze bloemenprint maxi rok, gemaakt van 100% polyester, maat onbekend (waarschijnlijk S), geplooid aan de voor- en achterkant en ritssluiting aan de linker zijkant',
@@ -26,4 +28,19 @@ Resource.create(title: 'Wit spetter print trainingsjack',
                 tracking_id: 'RP00019',
                 shop_id: '1000',
                 ros_id: nil)
+
+Agent.create(label: 'Swapshop',
+             agent_type: 'swapshop',
+             telegram_id: telegram_id,
+             ros_id: nil) ##todo create once through makefile
+
+Agent.create(label: 'Anonymous Participant 1',
+             agent_type: 'participant',
+             telegram_id: telegram_id,
+             ros_id: nil) ##todo create once through makefile
+
+Agent.create(label: 'Anonymous Participant 2',
+             agent_type: 'participant',
+             telegram_id: telegram_id,
+             ros_id: nil) ##todo create once through makefile
 

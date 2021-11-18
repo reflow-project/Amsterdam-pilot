@@ -10,7 +10,16 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_11_18_145404) do
+ActiveRecord::Schema.define(version: 2021_11_18_152332) do
+
+  create_table "agents", force: :cascade do |t|
+    t.string "label"
+    t.integer "agent_type"
+    t.integer "telegram_id"
+    t.string "ros_id"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
 
   create_table "resources", force: :cascade do |t|
     t.string "title"
