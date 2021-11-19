@@ -4,9 +4,12 @@
 <p><%= @resource.story.content %></p>
 
 <p>
-
-events
+<b>swap history</b>
 <% @resource.events.each do |event| %>
   <li><%= event.created_at %>: <%= event.description %> @ <%= event.location %></li>
 <% end %>
 </p>
+
+<b>ben jij de nieuwe eigenaar van dit item?</b>
+<p>
+Doe met ons mee, en stuur het bericht '/swap <%=@resource.tracking_id %>' naar onze <a href="https://t.me/tacostest_bot">@swapbot</a> op telegram!</p>
