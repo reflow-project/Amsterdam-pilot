@@ -44,3 +44,51 @@ Agent.create(label: 'Anonymous Participant 2',
              telegram_id: telegram_id,
              ros_id: nil) ##todo create once through makefile
 
+Event.create(event_type: 1, #swap in
+             source_agent_id: 2, #deelnmer 1
+             target_agent_id: 1, #swap shop
+             resource_id: 1, #maxi rok
+             location: "Amsterdam")
+
+Event.create(event_type: 2, #swap out 
+             source_agent_id: 1, #swap shop
+             target_agent_id: 2, #deelnemer 1
+             resource_id: 2, #geruitte rok
+             location: "Amsterdam")
+
+Event.create(event_type: 3, #wear 
+             source_agent_id: 2, #deelnemer 1
+             target_agent_id: nil, 
+             resource_id: 2, #geruitte rok
+             location: "Amsterdam")
+
+Event.create(event_type: 1, #swap in
+             source_agent_id: 3, #deelnmer 2
+             target_agent_id: 1, #swap shop
+             resource_id: 3, # trainings jack
+             location: "Amsterdam")
+
+Event.create(event_type: 2, #swap out 
+             source_agent_id: 1, #swap shop
+             target_agent_id: 3, #deelnemer 2
+             resource_id: 1, #maxi rok
+             location: "Amsterdam")
+
+Event.create(event_type: 3, #wear 
+             source_agent_id: 3, #deelnemer 2
+             target_agent_id: nil, 
+             resource_id: 1, #maxi rok
+             location: "Amsterdam")
+
+Story.create(resource_id: 1,
+             content: "i don't really like new stuff. But i like this skirt!")
+
+Story.create(resource_id: 2,
+             content: "i always wear this when working from home!")
+
+Story.create(resource_id: 3,
+             content: "this was my perfect 90's look!")
+
+Transcript.create(resource_id: 1,
+                  agent_id: 2,
+                  log: "@bot: Waarom koos je dit item? \n@joe: Daarom!\n")

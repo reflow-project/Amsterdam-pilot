@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  event_type: 1
+  source_agent_id: 1
+  target_agent_id: 1
+  resource_id: 1
+  location: MyString
+
+two:
+  event_type: 1
+  source_agent_id: 1
+  target_agent_id: 1
+  resource_id: 1
+  location: MyString

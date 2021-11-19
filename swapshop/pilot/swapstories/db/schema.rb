@@ -10,13 +10,23 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_11_18_152332) do
+ActiveRecord::Schema.define(version: 2021_11_19_094027) do
 
   create_table "agents", force: :cascade do |t|
     t.string "label"
     t.integer "agent_type"
     t.integer "telegram_id"
     t.string "ros_id"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "events", force: :cascade do |t|
+    t.integer "event_type"
+    t.integer "source_agent_id"
+    t.integer "target_agent_id"
+    t.integer "resource_id"
+    t.string "location"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
   end
@@ -28,6 +38,21 @@ ActiveRecord::Schema.define(version: 2021_11_18_152332) do
     t.string "tracking_id"
     t.integer "shop_id"
     t.string "ros_id"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "stories", force: :cascade do |t|
+    t.integer "resource_id"
+    t.text "content"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "transcripts", force: :cascade do |t|
+    t.integer "resource_id"
+    t.integer "agent_id"
+    t.text "log"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
   end
