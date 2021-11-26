@@ -49,13 +49,19 @@ class SwapBot
         end
 
         #bot.api.send_message(chat_id: message.chat.id, text: "je bent nu de eigenaar van #{tracking_id}!")
-        handle_dialog(bot, agent, message)
+        send_dialog(bot, agent, message)
       end
     end
   end
 
+  def receive_dialog(bot,agent,message)
+    puts message.text
+    send_dialog(bot,agent,message)
+  end
+
   #we're in some other state than root
-  def handle_dialog(bot, agent, message)
+  def send_dialog(bot, agent, message)
+    #TODO handle answer based on what state we're in 
     bot.api.send_message(chat_id: message.chat.id, text: "current state: #{agent.dialog_state}")
     agent.fsm.next
   end
@@ -70,7 +76,7 @@ class SwapBot
         when :root
           handle_commands(bot, agent, message)
         else
-          handle_dialog(bot, agent, message)
+          receive_dialog(bot, agent, message)
         end
       end
     end
