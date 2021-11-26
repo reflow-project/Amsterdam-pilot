@@ -37,6 +37,7 @@ class Agent < ApplicationRecord
     
       on_enter do |event|
         target.dialog_state = event.to
+        target.save!
       end
     end
   end

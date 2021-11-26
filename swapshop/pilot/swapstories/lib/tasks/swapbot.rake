@@ -1,51 +1,9 @@
 # telegram bot for handling swaps
-require 'telegram/bot'
-require 'dotenv/load'
-Dotenv.require_keys('TELEGRAM_TOKEN')
-token = ENV['TELEGRAM_TOKEN']
-role_pw = ENV['ROLE_PW']
+require_relative 'swapbot.rb'
 
 desc "telegram swapbot"
 namespace :swapbot do
   task :run => :environment do
-    res = Resource.find(1)
-
-    Telegram::Bot::Client.run(token) do |bot|
-      bot.listen do |message|
-        if(message.text.start_with? "/role #{role_pw}")
-          agent = Agent.find_or_create_by_telegram_id(message.chat.id)
-          agent.toggle_role!
-          bot.api.send_message(chat_id: message.chat.id, text: "role: #{agent.agent_type}")
-        end
-        if(message.text.start_with? "/swap ")
-          tracking_id = message.text[6..-1]
-
-          #TODO check if valid id
-          #TODO if valid; search or create agent
-          #put resource in the database
-          #TODO set found/created agent as owner, first adapt migration
-          res = Resource.create(title: 'Nader in te vullen',
-                description: 'nader in te vullen',
-                image_url: nil,
-                tracking_id: tracking_id,
-                shop_id: nil,
-                ros_id: nil)
-          bot.api.send_message(chat_id: message.chat.id, text: "je bent nu de eigenaar van #{tracking_id}!")
-         
-          #TODO depending of role, ask do fsm.register or fsm.swap and cycle through questions updating the resource as we go
-
-          Story.create(resource_id: res.id,
-             content: "Still empty")
-         
-          #determine the type of event, and create the event
-          #TODO when the questions are complete finalise the event
-          Event.create(event_type: SwapEvent::SWAP_OUT, 
-             source_agent_id: 1, 
-             target_agent_id: 3, 
-             resource_id: res.id, 
-             location: "Amsterdam")
-        end
-      end
-    end
+        SwapBot.new.listen              
   end
 end
