@@ -32,17 +32,23 @@ Resource.create(title: 'Wit spetter print trainingsjack',
 Agent.create(label: 'Swapshop',
              agent_type: 'swapshop',
              telegram_id: telegram_id,
-             ros_id: nil) ##todo create once through makefile
+             ros_id: nil,
+             dialog_state: nil
+            ) ##todo create once through makefile
 
 Agent.create(label: 'Anonymous Participant 1',
              agent_type: 'participant',
              telegram_id: telegram_id,
-             ros_id: nil) ##todo create once through makefile
+             ros_id: nil,
+             dialog_state: nil
+            ) ##todo create once through makefile
 
 Agent.create(label: 'Anonymous Participant 2',
              agent_type: 'participant',
              telegram_id: telegram_id,
-             ros_id: nil) ##todo create once through makefile
+             ros_id: nil,
+             dialog_state: nil
+            ) ##todo create once through makefile
 
 Event.create(event_type: 1, #swap in
              source_agent_id: 2, #deelnmer 1

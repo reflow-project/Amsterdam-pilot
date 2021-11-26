@@ -5,7 +5,8 @@ class CreateAgents < ActiveRecord::Migration[6.0]
       t.integer :agent_type
       t.integer :telegram_id
       t.string :ros_id
-
+      t.string :dialog_state
+      t.string :role
       t.timestamps
     end
   end
