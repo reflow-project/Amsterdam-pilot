@@ -3,16 +3,21 @@ require 'telegram/bot'
 require 'dotenv/load'
 Dotenv.require_keys('TELEGRAM_TOKEN')
 token = ENV['TELEGRAM_TOKEN']
+role_pw = ENV['ROLE_PW']
 
 desc "telegram swapbot"
 namespace :swapbot do
   task :run => :environment do
     res = Resource.find(1)
-    puts "hi #{res}!"
-    puts token
 
     Telegram::Bot::Client.run(token) do |bot|
       bot.listen do |message|
+        if(message.text.start_with? "/role #{role_pw}")
+          agent = Agent.find_or_create_by_telegram_id(message.chat.id)
+          agent.toggle_role!
+          puts "toggle role"
+          bot.api.send_message(chat_id: message.chat.id, text: "role: #{agent.agent_type}")
+        end
         if(message.text.start_with? "/swap ")
           tracking_id = message.text[6..-1]
           puts "register resource #{tracking_id}"

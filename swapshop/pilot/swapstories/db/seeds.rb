@@ -30,21 +30,21 @@ Resource.create(title: 'Wit spetter print trainingsjack',
                 ros_id: nil)
 
 Agent.create(label: 'Swapshop',
-             agent_type: 'swapshop',
+             agent_type: 1, 
              telegram_id: telegram_id,
              ros_id: nil,
              dialog_state: nil
             ) ##todo create once through makefile
 
 Agent.create(label: 'Anonymous Participant 1',
-             agent_type: 'participant',
+             agent_type: 0,
              telegram_id: telegram_id,
              ros_id: nil,
              dialog_state: nil
             ) ##todo create once through makefile
 
 Agent.create(label: 'Anonymous Participant 2',
-             agent_type: 'participant',
+             agent_type: 0,
              telegram_id: telegram_id,
              ros_id: nil,
              dialog_state: nil
