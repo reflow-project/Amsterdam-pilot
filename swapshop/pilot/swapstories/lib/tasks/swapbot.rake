@@ -15,16 +15,15 @@ namespace :swapbot do
         if(message.text.start_with? "/role #{role_pw}")
           agent = Agent.find_or_create_by_telegram_id(message.chat.id)
           agent.toggle_role!
-          puts "toggle role"
           bot.api.send_message(chat_id: message.chat.id, text: "role: #{agent.agent_type}")
         end
         if(message.text.start_with? "/swap ")
           tracking_id = message.text[6..-1]
-          puts "register resource #{tracking_id}"
+
           #TODO check if valid id
           #TODO if valid; search or create agent
           #put resource in the database
-          #TODO set found/created agent as owner
+          #TODO set found/created agent as owner, first adapt migration
           res = Resource.create(title: 'Nader in te vullen',
                 description: 'nader in te vullen',
                 image_url: nil,
@@ -32,11 +31,14 @@ namespace :swapbot do
                 shop_id: nil,
                 ros_id: nil)
           bot.api.send_message(chat_id: message.chat.id, text: "je bent nu de eigenaar van #{tracking_id}!")
+         
+          #TODO depending of role, ask do fsm.register or fsm.swap and cycle through questions updating the resource as we go
 
           Story.create(resource_id: res.id,
              content: "Still empty")
          
           #determine the type of event, and create the event
+          #TODO when the questions are complete finalise the event
           Event.create(event_type: SwapEvent::SWAP_OUT, 
              source_agent_id: 1, 
              target_agent_id: 3, 

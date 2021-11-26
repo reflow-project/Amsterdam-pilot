@@ -40,6 +40,7 @@ ActiveRecord::Schema.define(version: 2021_11_19_094027) do
     t.string "tracking_id"
     t.integer "shop_id"
     t.string "ros_id"
+    t.integer "owner"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
   end

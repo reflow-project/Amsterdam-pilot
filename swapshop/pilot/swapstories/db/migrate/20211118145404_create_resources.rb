@@ -7,6 +7,7 @@ class CreateResources < ActiveRecord::Migration[6.0]
       t.string :tracking_id
       t.integer :shop_id
       t.string :ros_id
+      t.integer :owner #agent_id
 
       t.timestamps
     end
