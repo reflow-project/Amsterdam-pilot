@@ -28,6 +28,7 @@ class SwapBot
 
     Story.create(resource_id: res.id,
                  content: "Still empty")
+    agent.dialog_subject = res.id 
     agent.fsm.register
     send_dialog(bot, agent, message) #kick off registration questions
   end
@@ -53,7 +54,7 @@ class SwapBot
         bot.api.send_message(chat_id: message.chat.id, text: "je bent al eigenaar van #{tracking_id}!")
         return
       end
-      
+     
       if(agent.agent_type == AgentType::SWAPSHOP)
         if(res == nil)
           do_swap_shop_registration_flow(tracking_id, bot, agent, message)
@@ -75,6 +76,7 @@ class SwapBot
           #TODO create swap_out event if prev owner was the swap shop
           res.owner = agent.id
           res.save!
+          agent.dialog_subject = res.id
           agent.fsm.swap
           send_dialog(bot, agent, message) #kick off follow  up questions
         end
@@ -91,15 +93,38 @@ class SwapBot
           #              location: "Amsterdam")
   
   def receive_dialog(bot,agent,message)
-    puts message.text
-    send_dialog(bot,agent,message)
+    puts "received answer for #{agent.dialog_state} -> #{message.text} regarding #{agent.dialog_subject}"
+    res = Resource.find(agent.dialog_subject) 
+    
+    case agent.dialog_state.to_sym
+    when :r_title
+      #update the title but for what resource? 
+      puts "updating title for resource #{agent.dialog_subject}"
+      res.title = message.text
+      res.save!
+    when :r_description
+      puts "updating description for resource #{agent.dialog_subject}"
+      res.description = message.text
+      res.save!
+    when :r_photo
+      puts "updating photo for resource #{agent.dialog_subject}"
+      res.image_url = message.text
+      res.save!
+      #TODO change this to check for a real photo, 
+      #which we can download and save in the public uploads folder and save a reference to that url
+    else
+      puts "unhandled dialog: #{agent.dialog_state}"
+    end
+
+    if(true) # TODO determine if we like this answer enough to pose the next question
+      agent.fsm.next
+      send_dialog(bot,agent,message)
+    end
   end
 
   #we're in some other state than root
   def send_dialog(bot, agent, message)
-    #TODO handle answer based on what state we're in 
     bot.api.send_message(chat_id: message.chat.id, text: "current state: #{agent.dialog_state}")
-    agent.fsm.next
   end
 
   def listen 
