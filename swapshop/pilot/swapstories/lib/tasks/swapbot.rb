@@ -17,6 +17,21 @@ class SwapBot
       valid_id
   end
 
+  def do_swap_shop_registration_flow(tracking_id, bot, agent, message)
+    res = Resource.create(title: 'Nader in te vullen',
+                          description: 'nader in te vullen',
+                          image_url: nil,
+                          tracking_id: tracking_id,
+                          shop_id: nil,
+                          ros_id: nil,
+                          owner: agent.id)
+
+    Story.create(resource_id: res.id,
+                 content: "Still empty")
+    agent.fsm.register
+    send_dialog(bot, agent, message) #kick off registration questions
+  end
+
   #we're in root state handling commands only
   def handle_commands(bot, agent, message)
 
@@ -28,20 +43,44 @@ class SwapBot
     if(message.text.start_with? "/swap ")
       tracking_id = message.text[6..-1]
 
-      if(is_valid? tracking_id)
-        res = Resource.find_by tracking_id: tracking_id
+      if not is_valid? tracking_id
+        bot.api.send_message(chat_id: message.chat.id, text: "dit is een ongeldig tracking id. Heb je misschien een typfout gemaakt?")
+        return
+      end
 
+      res = Resource.find_by tracking_id: tracking_id
+      if(res != nil and res.owner == agent.id)
+        bot.api.send_message(chat_id: message.chat.id, text: "je bent al eigenaar van #{tracking_id}!")
+        return
+      end
+      
+      if(agent.agent_type == AgentType::SWAPSHOP)
         if(res == nil)
-          res = Resource.create(title: 'Nader in te vullen',
-                                description: 'nader in te vullen',
-                                image_url: nil,
-                                tracking_id: tracking_id,
-                                shop_id: nil,
-                                ros_id: nil,
-                                owner: agent.id)
+          do_swap_shop_registration_flow(tracking_id, bot, agent, message)
+          #TODO create born event
+        else
+          prev_owner = res.owner
+          #TODO create swap_in event
+          res.owner = agent.id
+          res.save!
+          bot.api.send_message(chat_id: message.chat.id, text: "#{tracking_id} is weer terug bij de swapshop!")
+        end
+      end
 
-          Story.create(resource_id: res.id,
-                       content: "Still empty")
+      if(agent.agent_type == AgentType::PARTICIPANT)
+        if(res == nil)
+          bot.api.send_message(chat_id: message.chat.id, text: "dit tracking id is onbekend. Heb je misschien een typfout gemaakt?")
+        else
+          prev_owner = res.owner
+          #TODO create swap_out event if prev owner was the swap shop
+          res.owner = agent.id
+          res.save!
+          agent.fsm.swap
+          send_dialog(bot, agent, message) #kick off follow  up questions
+        end
+      end
+    end
+  end
 
           #determine the type of event, and create the event
           #TODO move this to when the questions are complete finalise the event
@@ -50,27 +89,7 @@ class SwapBot
           #              target_agent_id: 3, 
           #              resource_id: res.id, 
           #              location: "Amsterdam")
-        end
-
-        # if it already exists check ownership, if different 
-        # update the owner to the current agent
-        if(res.owner == agent.id)
-          #basically error message, we stay in root state
-          bot.api.send_message(chat_id: message.chat.id, text: "je bent al eigenaar van #{tracking_id}!")
-        else # update the chat state for followup
-          if(agent.agent_type == AgentType::PARTICIPANT)
-            agent.fsm.swap
-          else #swap shop
-            agent.fsm.register
-          end
-          send_dialog(bot, agent, message)
-        end
-      else #invalid id
-        bot.api.send_message(chat_id: message.chat.id, text: "dit is een ongeldig tracking id. Heb je misschien een typfout gemaakt?")
-      end
-    end
-  end
-
+  
   def receive_dialog(bot,agent,message)
     puts message.text
     send_dialog(bot,agent,message)
