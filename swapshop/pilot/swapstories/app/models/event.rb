@@ -1,8 +1,10 @@
 module SwapEvent 
+  BORN = 0
   SWAP_IN = 1
   SWAP_OUT = 2
   USE = 3
   REPAIR = 4
+  SWAP = 5
 end
 
 class Event < ApplicationRecord
@@ -14,13 +16,17 @@ class Event < ApplicationRecord
     def description
       event_type = read_attribute("event_type")
       case event_type 
-        when SwapEvent::SWAP_IN
+        when SwapEvent::BORN # register by shop (produce or raise)
+          "Registered in inventory"
+        when SwapEvent::SWAP_IN #swap from participant to shop
           "Swap in"
-        when SwapEvent::SWAP_OUT
+        when SwapEvent::SWAP_OUT #swap from shop to participant
           "Swap out"
-        when SwapEvent::USE
+        when SwapEvent::SWAP #swap between participants
+          "Swap"
+        when SwapEvent::USE # use by participant
           "Use"
-        when SwapEvent::REPAIR
+        when SwapEvent::REPAIR # repair by participant / shop
           "Repair"
         else
           ""
