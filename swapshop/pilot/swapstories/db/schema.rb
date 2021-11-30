@@ -56,7 +56,8 @@ ActiveRecord::Schema.define(version: 2021_11_19_094027) do
   create_table "transcripts", force: :cascade do |t|
     t.integer "resource_id"
     t.integer "agent_id"
-    t.text "log"
+    t.string "dialog_key"
+    t.text "dialog_value"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
   end

@@ -95,30 +95,66 @@ class SwapBot
   def receive_dialog(bot,agent,message)
     puts "received answer for #{agent.dialog_state} -> #{message.text} regarding #{agent.dialog_subject}"
     res = Resource.find(agent.dialog_subject) 
-    
+   
+    valid_answer = false
+
     case agent.dialog_state.to_sym
     when :r_title
       #update the title but for what resource? 
       puts "updating title for resource #{agent.dialog_subject}"
       res.title = message.text
       res.save!
+      valid_answer = true
     when :r_description
       puts "updating description for resource #{agent.dialog_subject}"
       res.description = message.text
       res.save!
+      valid_answer = true
     when :r_photo
       puts "updating photo for resource #{agent.dialog_subject}"
-      res.image_url = message.text
-      res.save!
-      #TODO change this to check for a real photo, 
-      #which we can download and save in the public uploads folder and save a reference to that url
+
+      #for now we just show the image from telegram, no need to save, wonder how long it stays on server though?
+      url = image_url(bot,message) 
+      if(url)
+        res.image_url = url 
+        res.save!
+        valid_answer = true
+      end
+    when :s_q1, :s_q2
+      Transcript.create(resource_id: res.id,
+                        agent_id: agent.id,
+                        dialog_key: agent.dialog_state,
+                        dialog_value: message.text)
+      valid_answer = true
+    when :s_q_photo
+      url = image_url(bot,message) 
+      if(url)
+        Transcript.create(resource_id: res.id,
+                        agent_id: agent.id,
+                        dialog_key: agent.dialog_state,
+                        dialog_value: url)
+        valid_answer = true
+      end
     else
       puts "unhandled dialog: #{agent.dialog_state}"
     end
-
-    if(true) # TODO determine if we like this answer enough to pose the next question
+    
+    if(valid_answer) 
       agent.fsm.next
       send_dialog(bot,agent,message)
+    end
+  end
+
+  #download a foto and return url
+  def image_url(bot, message)
+    token = ENV['TELEGRAM_TOKEN']
+    if message.photo.count > 0
+
+      #download the photo from telegram
+      photo_id = message.photo.last.file_id
+      foto = bot.api.get_file(file_id: photo_id)  #get the file meta data
+      path = foto["result"]["file_path"]
+      "https://api.telegram.org/file/bot#{token}/#{path}"  
     end
   end
 

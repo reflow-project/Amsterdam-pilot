@@ -100,4 +100,5 @@ Story.create(resource_id: 3,
 
 Transcript.create(resource_id: 1,
                   agent_id: 2,
-                  log: "@bot: Waarom koos je dit item? \n@joe: Daarom!\n")
+                  dialog_key: "s_q1",
+                  dialog_value: "answer to 1")
