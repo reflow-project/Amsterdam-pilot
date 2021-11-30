@@ -171,9 +171,18 @@ class SwapBot
     end
   end
 
-  #we're in some other state than root
   def send_dialog(bot, agent, message)
-    bot.api.send_message(chat_id: message.chat.id, text: "current state: #{agent.dialog_state}")
+    #all these keys correspond to the fsm states defined in the agent model
+    questions = {
+      :r_title => "Wat is de titel van dit item?",
+      :r_description => "Hoe zou je het item omschrijven?",
+      :r_photo => "Kun je een foto van het item opsturen?",
+      :s_q1 => "Vraag 1: Waarom heb je dit item gekozen?",
+      :s_q2 => "Vraag 2: Wanneer denk je dat je het zult dragen?",
+      :root => "Bedankt voor het meedoen! Geef een /swap commando om te beginnen met een nieuw kledingstuk."
+    }
+    question = questions[agent.dialog_state.to_sym]
+    bot.api.send_message(chat_id: message.chat.id, text: question)
   end
 
   def listen 
