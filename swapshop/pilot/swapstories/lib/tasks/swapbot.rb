@@ -28,6 +28,13 @@ class SwapBot
 
     Story.create(resource_id: res.id,
                  content: "Still empty")
+    
+    Event.create(event_type: SwapEvent::BORN, 
+                       source_agent_id: agent.id, 
+                       target_agent_id: agent.id, 
+                       resource_id: res.id, 
+                       location: "Amsterdam")
+
     agent.dialog_subject = res.id 
     agent.fsm.register
     send_dialog(bot, agent, message) #kick off registration questions
@@ -54,26 +61,40 @@ class SwapBot
         bot.api.send_message(chat_id: message.chat.id, text: "je bent al eigenaar van #{tracking_id}!")
         return
       end
-     
+
+      #/swap performed by swapshop, either new or swap in
       if(agent.agent_type == AgentType::SWAPSHOP)
         if(res == nil)
           do_swap_shop_registration_flow(tracking_id, bot, agent, message)
-          #TODO create born event
         else
-          prev_owner = res.owner
-          #TODO create swap_in event
+          prev_owner_id = res.owner
+          Event.create(event_type: SwapEvent::SWAP_IN, 
+                       source_agent_id: prev_owner_id, 
+                       target_agent_id: agent.id, 
+                       resource_id: res.id, 
+                       location: "Amsterdam")
+
           res.owner = agent.id
           res.save!
           bot.api.send_message(chat_id: message.chat.id, text: "#{tracking_id} is weer terug bij de swapshop!")
         end
       end
 
+      #/swap performed by participant, either with the swap shop or with a friend
       if(agent.agent_type == AgentType::PARTICIPANT)
         if(res == nil)
           bot.api.send_message(chat_id: message.chat.id, text: "dit tracking id is onbekend. Heb je misschien een typfout gemaakt?")
         else
-          prev_owner = res.owner
-          #TODO create swap_out event if prev owner was the swap shop
+          
+          #depending on if it's a swap between shop and participant or between two participants we register a different event type
+          prev_agent = Agent.find(res.owner)
+          event_type = (prev_agent.agent_type == AgentType::PARTICIPANT) ? SwapEvent::SWAP : SwapEvent::SWAP_OUT
+          Event.create(event_type: event_type, 
+                       source_agent_id: prev_agent.id, 
+                       target_agent_id: agent.id, 
+                       resource_id: res.id, 
+                       location: "Amsterdam")
+
           res.owner = agent.id
           res.save!
           agent.dialog_subject = res.id
@@ -83,15 +104,7 @@ class SwapBot
       end
     end
   end
-
-          #determine the type of event, and create the event
-          #TODO move this to when the questions are complete finalise the event
-          # Event.create(event_type: SwapEvent::SWAP_OUT, 
-          #              source_agent_id: 1, 
-          #              target_agent_id: 3, 
-          #              resource_id: res.id, 
-          #              location: "Amsterdam")
-  
+            
   def receive_dialog(bot,agent,message)
     puts "received answer for #{agent.dialog_state} -> #{message.text} regarding #{agent.dialog_subject}"
     res = Resource.find(agent.dialog_subject) 
