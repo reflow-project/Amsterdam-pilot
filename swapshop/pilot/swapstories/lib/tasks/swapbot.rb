@@ -127,7 +127,7 @@ class SwapBot
       puts "updating photo for resource #{agent.dialog_subject}"
 
       #for now we just show the image from telegram, no need to save, wonder how long it stays on server though?
-      url = image_url(bot,message) 
+      url = image_url(bot,message,agent.dialog_subject) 
       if(url)
         res.image_url = url 
         res.save!
@@ -159,7 +159,7 @@ class SwapBot
   end
 
   #download a foto and return url
-  def image_url(bot, message)
+  def image_url(bot, message, subject_id)
     token = ENV['TELEGRAM_TOKEN']
     if message.photo.count > 0
 
@@ -167,7 +167,9 @@ class SwapBot
       photo_id = message.photo.last.file_id
       foto = bot.api.get_file(file_id: photo_id)  #get the file meta data
       path = foto["result"]["file_path"]
-      "https://api.telegram.org/file/bot#{token}/#{path}"  
+      telegram_url = "https://api.telegram.org/file/bot#{token}/#{path}"  
+      `curl #{telegram_url} > public/uploads/#{subject_id}.jpg`
+      "/uploads/#{subject_id}.jpg" 
     end
   end
 
