@@ -1,0 +1,39 @@
+<h1>Edit Narrative</h1> 
+<% flash.each do |type, msg| %>
+  <div>
+    <%= msg %>
+  </div>
+<% end %>
+
+<%= form_for @resource, :url => url_for(:controller => 'narratives', :action => 'update') do |form| %>
+  Title:<br/> 
+  <%= form.text_field :title, size: 60 %><br/>
+  Description:<br/> <%= form.text_area :description, size: "60x10" %></br>
+  Story:<br/>
+  <%= fields_for @resource.story do |nested_form| %>
+    <%= nested_form.text_area :content, size: "60x10" %>
+  <% end %>
+  <%= form.submit "Save" %>
+<% end %>
+
+<p><img src="<%= @resource.image_url %>" width="200px" />
+
+<br/>
+<br/>
+
+<p>
+<b>Event log</b>
+<% @resource.events.each do |event| %>
+  <li><%= event.created_at %>: <%= event.description %> @ <%= event.location %></li>
+<% end %>
+</p>
+
+<p>
+<b>Chat answers log</b>
+<br/>
+<% @resource.transcripts.each do |t| %>
+  <li> <%= t.created_at %> <b><%= t.dialog_key %></b> : "<%= t.dialog_value%>" by <span style="font-style: italic;"> <%= t.agent.label %></span></li>
+<% end %>
+</p>
+
+
