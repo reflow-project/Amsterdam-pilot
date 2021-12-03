@@ -1,20 +1,36 @@
-<h1><%= @resource.title %></h1>
-<p><%= @resource.description %></p>
-<p><img src="<%= @resource.image_url %>" width="200px" />
+<div class="main-header">
+  <div class="logo">
+    <img src="https://cdn.webshopapp.com/shops/314295/themes/176273/assets/logo.png?20210927022046" alt="The Swapshop"/>
+  </div>
+</div>
 
-<br/>
-<br/>
+<div class="narrative">
+  <div class="call_to_action">
+    <b>Ben jij mijn nieuwe eigenaar?</b>
+    Stuur dit bericht naar de <a href="https://t.me/tacostest_bot">@swapbot</a>&nbsp;&nbsp; <span class="code"> /swap <%=@resource.tracking_id %></span>
+  </div>
 
-<b>Mijn verhaal</b>
-<p><%= @resource.story.content %></p>
+  <h1><%= @resource.title %></h1>
+  <p><%= @resource.description %></p>
+  
+  <div class= "main-image">
+  <img src="<%= @resource.image_url %>" width="200px" />
+  </div>
+  <br/>
+  <div class="story">
+    <b>Mijn verhaal</b>
+    <p><span class="content"><%= @resource.story.content %></span></p>
+  </div>
+  <br/> 
+  <div class="story">
+    <p>
+    <b>Mijn geschiedenis</b>
+    <ul>
+      <% @resource.events.each do |event| %>
+        <li><%= event.created_at %>: <%= event.description %> @ <%= event.location %></li>
+      <% end %>
+    </ul>
+    </p>
 
-<p>
-<b>Mijn geschiedenis</b>
-<% @resource.events.each do |event| %>
-  <li><%= event.created_at %>: <%= event.description %> @ <%= event.location %></li>
-<% end %>
-</p>
-
-<b>Ben jij mijn nieuwe eigenaar?</b>
-<p>
-Draag bij aan mijn verhaal, en stuur het bericht '/swap <%=@resource.tracking_id %>' naar onze <a href="https://t.me/tacostest_bot">@swapbot</a> op telegram!</p>
+  </div>
+</div>

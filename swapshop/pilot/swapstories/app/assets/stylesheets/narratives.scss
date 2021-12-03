@@ -1,3 +1,84 @@
 // Place all the styles related to the Narratives controller here.
 // They will automatically be included in application.css.
 // You can use Sass (SCSS) here: https://sass-lang.com/
+$base-color: #76c4b6; //turqoise
+$secondary-color: #cb97c4; 
+$highlight-color: #a1d7cd;
+$link-color: #cb97c4;
+
+
+@font-face {
+    font-family: 'Geomanist';
+    src: url('https://cdn.webshopapp.com/shops/314295/themes/176273/assets/geomanist-regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Geomanist';
+    src: url('https://cdn.webshopapp.com/shops/314295/themes/176273/assets/geomanist-black.woff2') format('woff2');
+    font-weight: 900;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Geomanist';
+    src: url('https://cdn.webshopapp.com/shops/314295/themes/176273/assets/geomanist-bold.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+}
+
+
+body {
+    background-color: $base-color;
+    padding: 0px;
+    margin: 0px;
+}
+
+a {
+    color: $link-color;
+    filter: brightness(85%);
+}
+
+.main-header {
+    padding: 10px;
+    background-color: $secondary-color;
+}
+
+.logo {
+    vertical-align: middle;
+    text-align: center;
+}
+
+.main-image {
+    vertical-align: middle;
+    text-align: center;
+}
+
+.logo img {
+    height: 70px;
+}
+
+.narrative {
+    padding: 30px;
+    color: white;
+    font-family: "Geomanist", Helvetica, sans-serif;
+}
+
+.code
+{
+    background: white;//pastel yellow
+    color: $link-color;
+    font-family: monospace;
+}
+
+.story {
+    background-color: $secondary-color;
+    padding: 10px;
+}
+
+.call_to_action {
+    background-color: $highlight-color;
+    padding: 8px;
+    border-radius: 5px;
+}
