@@ -29,12 +29,6 @@ class SwapBot
     Story.create(resource_id: res.id,
                  content: "Still empty")
     
-    Event.create(event_type: SwapEvent::BORN, 
-                       source_agent_id: agent.id, 
-                       target_agent_id: agent.id, 
-                       resource_id: res.id, 
-                       location: "Amsterdam")
-
     agent.dialog_subject = res.id 
     agent.fsm.register
     send_dialog(bot, agent, message) #kick off registration questions
@@ -131,6 +125,14 @@ class SwapBot
       if(url)
         res.image_url = url 
         res.save!
+       
+        #we have everything so ready to be born in reflow os
+        Event.create(event_type: SwapEvent::BORN, 
+                       source_agent_id: agent.id, 
+                       target_agent_id: agent.id, 
+                       resource_id: res.id, 
+                       location: "Amsterdam")
+        
         valid_answer = true
       end
     when :s_q1, :s_q2
