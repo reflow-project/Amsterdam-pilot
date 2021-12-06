@@ -27,7 +27,7 @@
     <b>Mijn geschiedenis</b>
     <ul>
       <% @resource.events.each do |event| %>
-        <li><%= event.created_at %>: <%= event.description %> @ <%= event.location %></li>
+        <li><%= event.created_at.strftime("%d %B, %Y") %>: <%= event.description %> @ <%= event.location %></li>
       <% end %>
     </ul>
     </p>

@@ -1,10 +1,11 @@
-<h1>Edit Narrative</h1> 
 <% flash.each do |type, msg| %>
   <div>
     <%= msg %>
   </div>
 <% end %>
 
+<div class="narrative">
+<h1>Edit Narrative</h1> 
 <%= form_for @resource, :url => url_for(:controller => 'narratives', :action => 'update') do |form| %>
   Title:<br/> 
   <%= form.text_field :title, size: 60 %><br/>
@@ -13,7 +14,8 @@
   <%= fields_for @resource.story do |nested_form| %>
     <%= nested_form.text_area :content, size: "60x10" %>
   <% end %>
-  <%= form.submit "Save" %>
+  </br>
+  <%= form.submit "Save changes" %>
 <% end %>
 
 <p><img src="<%= @resource.image_url %>" width="200px" />
@@ -24,7 +26,7 @@
 <p>
 <b>Event log</b>
 <% @resource.events.each do |event| %>
-  <li><%= event.created_at %>: <%= event.description %> @ <%= event.location %></li>
+  <li><%= event.created_at.strftime("%B %d, %Y") %>: <%= event.description %> @ <%= event.location %></li>
 <% end %>
 </p>
 
@@ -32,8 +34,8 @@
 <b>Chat answers log</b>
 <br/>
 <% @resource.transcripts.each do |t| %>
-  <li> <%= t.created_at %> <b><%= t.dialog_key %></b> : "<%= t.dialog_value%>" by <span style="font-style: italic;"> <%= t.agent.label %></span></li>
+  <li> <%= t.created_at.strftime("%B %d, %Y") %> <b><%= t.dialog_key %></b> : "<%= t.dialog_value%>" by <span style="font-style: italic;"> <%= t.agent.label %></span></li>
 <% end %>
 </p>
-
+</div>
 
