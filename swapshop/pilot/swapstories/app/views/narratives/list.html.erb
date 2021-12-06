@@ -1,0 +1,13 @@
+<div class="narrative">
+<h1> Known resources </h1>
+<table class="story">
+<% @resources.each do |resource| %>
+  <tr>
+    <td><%= resource.tracking_id %></td>
+    <td><%= resource.title %></td>
+    <td><button onclick="location.href='/code/<%= resource.tracking_id %>'" type="button">view</button></td>
+    <td><button onclick="location.href='/edit/<%= resource.tracking_id %>'" type="button">edit</button></td>
+  </tr>
+<% end %>
+</table>
+</div>

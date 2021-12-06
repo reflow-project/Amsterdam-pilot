@@ -82,3 +82,15 @@ a {
     padding: 8px;
     border-radius: 5px;
 }
+
+table{
+    border-spacing: 0;
+}
+tr:nth-child(odd) {
+    background: $highlight-color;
+}
+
+td{
+    margin: 0px;
+    padding: 5px;
+}

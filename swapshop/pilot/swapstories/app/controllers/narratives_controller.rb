@@ -20,6 +20,10 @@ class NarrativesController < ApplicationController
     redirect_to action: :edit 
   end
 
+  def list
+    @resources = Resource.all
+  end
+
   private
     def resource_params
           params.require(:resource).permit(:title, :description)
