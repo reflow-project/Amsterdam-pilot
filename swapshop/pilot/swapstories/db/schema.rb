@@ -29,6 +29,7 @@ ActiveRecord::Schema.define(version: 2021_11_19_094027) do
     t.integer "source_agent_id"
     t.integer "target_agent_id"
     t.integer "resource_id"
+    t.string "ros_id"
     t.string "location"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
