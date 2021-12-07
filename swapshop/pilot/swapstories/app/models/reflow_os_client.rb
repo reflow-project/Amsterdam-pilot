@@ -196,7 +196,8 @@ class ReflowOsClient
     variables[:newInventoriedResource][:contained_in] = stock_id if stock_id != nil
 
     result = performEvent(token, variables)
-    result.resource_inventoried_as.id #return value is created item id
+    # result.resource_inventoried_as.id #return value is created item id
+    result
   end
 
   #produce a resource that is a volume (has unit and amount => other than om2:one)
