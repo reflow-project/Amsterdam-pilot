@@ -37,5 +37,8 @@
   <li> <%= t.created_at.strftime("%B %d, %Y") %> <b><%= t.dialog_key %></b> : "<%= t.dialog_value%>" by <span style="font-style: italic;"> <%= t.agent.label %></span></li>
 <% end %>
 </p>
+
+<b>Reflow OS</b>
+<p><a href="http://135.181.35.156:4000/resource/<%= @resource.ros_id %>">Reflow OS link</a></p>
 </div>
 
