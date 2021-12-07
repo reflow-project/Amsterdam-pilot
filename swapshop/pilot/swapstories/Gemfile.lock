@@ -113,6 +113,10 @@ GEM
       sync (~> 0.5)
     globalid (0.5.2)
       activesupport (>= 5.0)
+    graphql (1.13.0)
+    graphql-client (0.17.0)
+      activesupport (>= 3.0)
+      graphql (~> 1.10)
     i18n (1.8.11)
       concurrent-ruby (~> 1.0)
     ice_nine (0.11.2)
@@ -256,6 +260,7 @@ DEPENDENCIES
   dotenv
   faker
   finite_machine
+  graphql-client
   jbuilder (~> 2.7)
   listen (~> 3.2)
   puma (~> 4.1)

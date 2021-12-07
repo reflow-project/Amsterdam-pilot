@@ -58,4 +58,5 @@ gem 'telegram-bot-ruby'
 gem 'faker'
 gem 'finite_machine'
 gem 'rails-observers'
+gem 'graphql-client'
 
