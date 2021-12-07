@@ -183,6 +183,7 @@ class SwapBot
       :r_photo => "Kun je een foto van het item opsturen?",
       :s_q1 => "Vraag 1: Waarom heb je dit item gekozen?",
       :s_q2 => "Vraag 2: Wanneer denk je dat je het zult dragen?",
+      :s_q_photo => "Kun je een foto van het item opsturen?",
       :root => "Bedankt voor het meedoen! Geef een /swap commando om te beginnen met een nieuw kledingstuk."
     }
     question = questions[agent.dialog_state.to_sym]
