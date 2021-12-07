@@ -142,7 +142,7 @@ class SwapBot
                         dialog_value: message.text)
       valid_answer = true
     when :s_q_photo
-      url = image_url(bot,message) 
+      url = image_url(bot,message,res.id) 
       if(url)
         Transcript.create(resource_id: res.id,
                         agent_id: agent.id,
