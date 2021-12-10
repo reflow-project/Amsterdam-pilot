@@ -8,10 +8,11 @@ class EventObserver < ActiveRecord::Observer
 
       puts "registering: #{event.resource.inspect} in reflow os"
       client = ReflowOsClient.new
-      agent_id = client.me(ENV['ROS_SWAPSHOP_TOKEN'])
+      token = client.login(ENV['ROS_EMAIL'],ENV['ROS_PW'])
+      agent_id = client.me(token)
 
       result = client.produce_one(
-        ENV['ROS_SWAPSHOP_TOKEN'], 
+        token, 
         agent_id, 
         event.resource.title, 
         event.resource.tracking_id, 
