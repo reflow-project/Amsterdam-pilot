@@ -17,19 +17,10 @@ class SwapBot
       valid_id
   end
 
-  def do_swap_shop_registration_flow(tracking_id, bot, agent, message)
-    res = Resource.create(title: 'Nader in te vullen',
-                          description: 'nader in te vullen',
-                          image_url: nil,
-                          tracking_id: tracking_id,
-                          shop_id: nil,
-                          ros_id: nil,
-                          owner: agent.id)
-
-    Story.create(resource_id: res.id,
-                 content: "Still empty")
-    
+  def do_swap_shop_registration_flow(tracking_id, bot, agent, message, res)
     agent.dialog_subject = res.id 
+    res.owner = agent.id
+    res.save!
     agent.fsm.register
     send_dialog(bot, agent, message) #kick off registration questions
   end
@@ -60,8 +51,8 @@ class SwapBot
 
       #/swap performed by swapshop, either new or swap in
       if(agent.agent_type == AgentType::SWAPSHOP)
-        if(res == nil)
-          do_swap_shop_registration_flow(tracking_id, bot, agent, message)
+        if(res != nil and res.owner == nil)
+          do_swap_shop_registration_flow(tracking_id, bot, agent, message, res)
         else
           prev_owner_id = res.owner
           Event.create(event_type: SwapEvent::SWAP_IN, 
@@ -78,8 +69,8 @@ class SwapBot
 
       #/swap performed by participant, either with the swap shop or with a friend
       if(agent.agent_type == AgentType::PARTICIPANT)
-        if(res == nil)
-          bot.api.send_message(chat_id: message.chat.id, text: "dit tracking id is onbekend. Heb je misschien een typfout gemaakt?")
+        if(res == nil || res.owner == nil)
+          bot.api.send_message(chat_id: message.chat.id, text: "dit tracking id is onbekend.")
         else
           
           #depending on if it's a swap between shop and participant or between two participants we register a different event type
