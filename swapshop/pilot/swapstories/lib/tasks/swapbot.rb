@@ -42,8 +42,10 @@ class SwapBot
       bot.api.send_message(chat_id: message.chat.id, text: "role: #{agent.agent_type}")
     end 
 
-    if(message.text.start_with? "/swap ")
-      tracking_id = message.text[6..-1]
+    if(message.text.start_with? "/start ")
+      puts message.text
+      tracking_id = message.text[7..-1]
+      puts tracking_id
 
       if not is_valid? tracking_id
         bot.api.send_message(chat_id: message.chat.id, text: "dit is een ongeldig tracking id. Heb je misschien een typfout gemaakt?")

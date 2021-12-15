@@ -7,7 +7,8 @@
 <div class="narrative">
   <div class="call_to_action">
     <b>Ben jij mijn nieuwe eigenaar?</b>
-    Stuur dit bericht naar de <a href="https://t.me/tacostest_bot">@swapbot</a>&nbsp;&nbsp; <span class="code"> /swap <%=@resource.tracking_id %></span>
+    <!-- Praat met de <a href="https://t.me/tacostest_bot?start=<%=@resource.tracking_id %>">@swapbot</a-->
+    Praat met de <a href="tg://resolve?domain=tacostest_bot&start=<%=@resource.tracking_id %>">@swapbot</a>
   </div>
 
   <h1><%= @resource.title %></h1>
