@@ -198,7 +198,7 @@ class ReflowOSClient
   # location_id should exist in reflow os
   # event_note says something about the event, let's include the simulated date here
   # res_note says something about the resource
-  def produce_one(token, agent_id, name, tracking_identifier, location_id, event_note, res_note, ts, unit_id, stock_id = nil) 
+  def produce_one(token, agent_id, name, tracking_identifier, location_id, event_note, res_note, ts, unit_id, stock_id = nil, output_of = nil) 
     variables = {
       event: {
         note: event_note,
@@ -223,6 +223,9 @@ class ReflowOSClient
     # relate this resource to a stock if part of stock 
     variables[:newInventoriedResource][:contained_in] = stock_id if stock_id != nil
 
+    # if a process output is specified pass that too
+    variables[:event][:outputOf] = output_of if output_of != nil
+    
     result = performEvent(token, variables)
     result.resource_inventoried_as.id #return value is created item id
   end

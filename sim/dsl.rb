@@ -144,6 +144,19 @@ end
 $pools = Hash.new
 def pool(key, label, resource_key, amount = 0)
   raise "resource not found: #{type}" if not $resources.key? resource_key 
+ 
+  #create one process that wraps all the produce events
+  agent = $agents[$context[:agent_key]]
+  date = $context[:date]
+  
+  process_id = $client.process(
+    agent[:token],
+    "birth process",
+    "seed pool for #{agent[:agent_id]}",
+    date.iso8601
+  )
+  puts "created (pool) process: #{process_id}"
+
   items = []
   # generate the initial items 
   if(amount > 0)
@@ -151,9 +164,6 @@ def pool(key, label, resource_key, amount = 0)
         item = $resources[resource_key][:generator].call
         item[:unit] = $resources[resource_key][:unit]
         resource_label = $resources[resource_key][:label]
-        # first time should produce
-        agent = $agents[$context[:agent_key]]
-        date = $context[:date]
 
         #create the item in reflow os and save the id for future reference
         # puts "seeding pool item as #{$context[:agent_key]}"
@@ -166,7 +176,10 @@ def pool(key, label, resource_key, amount = 0)
           "seed pool for #{$context[:agent_key]} - #{$context[:date]}",
           item[:description],
           date.iso8601,
-          item[:unit])
+          item[:unit],
+          nil, #no stock id
+          process_id
+        )
 
         item[:created_by] = $context[:agent_key]
         item[:created_at_day] = $context[:date].iso8601
