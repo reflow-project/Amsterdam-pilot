@@ -2,7 +2,6 @@
 require "graphql/client"
 require "graphql/client/http"
 require 'dotenv/load'
-require "byebug"
 
 module ReflowOS
 
@@ -99,6 +98,18 @@ module ReflowOS
 	}
     GRAPHQL
     UnitQuery = ReflowOS::Client.parse(unitTemplate) 
+
+    processTemplate = <<-'GRAPHQL'
+	mutation($process:ProcessCreateParams!) {
+	  createProcess(process: $process) {
+		process {
+		  id
+		}
+	  }
+	}
+    GRAPHQL
+    ProcessQuery = ReflowOS::Client.parse(processTemplate) 
+
 end
 
 class ReflowOSClient
@@ -148,6 +159,20 @@ class ReflowOSClient
     }
     result = ReflowOS::Client.query(ReflowOS::UnitQuery, variables: variables, context: {token: token}) 
     result.data.create_unit.unit.id
+  end
+
+  # create process and return id
+  def process(token, name, note, ts)
+    variables = {
+      process: {
+        name: name,
+        note: note,
+        hasBeginning: ts,
+        hasEnd: ts
+      }
+    }
+    result = ReflowOS::Client.query(ReflowOS::ProcessQuery, variables: variables, context: {token: token}) 
+    result.data.create_process.process.id
   end
 
   def location(token,lat,lon,address,name,note)
