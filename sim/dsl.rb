@@ -347,6 +347,27 @@ def unpack_container(container_key)
   agent = $agents[performer]
   date = $context[:date]
 
+  process_id = $client.process(
+    agent[:token],
+    "unpack process",
+    "unpack by #{agent[:label]}",
+    date.iso8601
+  )
+  puts "created (unpack) process: #{process_id}"
+
+  #consume the container (inputOf)
+  container_id = $containers[container_key][:id]
+  event_id = $client.consume_one(
+        agent[:token], 
+        agent[:agent_id], 
+        container_id, 
+        "consume container for #{$context[:process_performer]}",
+        date.iso8601,
+        inputOf:process_id
+    )
+
+
+  #produce the packed items (outputOf)
   container_take(container_key)  # places them in batch
   packed_items = $context[:batch] 
   unpacked_items = []
@@ -361,7 +382,11 @@ def unpack_container(container_key)
       "unpacked by #{$context[:process_performer]} - #{$context[:date]}",
       item[:description],
       date.iso8601,
-      item[:unit])
+      item[:unit],
+      nil,
+      process_id #outputOf
+    )
+
     item[:created_by] = $context[:process_performer]
     item[:created_at_day] = $context[:date].iso8601
     unpacked_items << item 
