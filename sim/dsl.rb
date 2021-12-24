@@ -520,7 +520,7 @@ def consume_batch(process_id: nil)
   if(process_id == nil)
     process_id = $client.process(
       agent[:token],
-      "consume batch process #{note}",
+      "consume batch process",
       "consume batch for #{agent[:label]}",
       date.iso8601
     )
