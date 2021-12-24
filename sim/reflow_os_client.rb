@@ -265,7 +265,7 @@ class ReflowOSClient
   # location_id should exist in reflow os
   # event_note says something about the event, let's include the simulated date here
   # res_note says something about the resource
-  def produce_empty_container(token, agent_id, name, location_id, event_note, res_note, ts, unit_id) 
+  def produce_empty_container(token, agent_id, name, location_id, event_note, res_note, ts, unit_id, outputOf) 
     variables = {
       event: {
         note: event_note,
@@ -276,7 +276,8 @@ class ReflowOSClient
         resourceQuantity: {
           "hasUnit": unit_id, 
           "hasNumericalValue": 0
-        }
+        },
+        outputOf: outputOf
       },
       newInventoriedResource: { 
         name: name,
@@ -291,7 +292,7 @@ class ReflowOSClient
 
   # Use a single resource
   # Does nothing to the resource except log an event
-  def use_one(token, agent_id, resource_id, event_note, ts)
+  def use_one(token, agent_id, resource_id, event_note, ts, inputOf: nil, outputOf: nil)
     variables = {
       event: {
         note: event_note,
@@ -302,6 +303,10 @@ class ReflowOSClient
         resourceInventoriedAs: resource_id 
       }
     }
+
+    variables[:event][:inputOf] = inputOf if inputOf != nil
+    variables[:event][:outputOf] = outputOf if outputOf != nil
+
     result = performEvent(token, variables)
     result.id #return value is event id
   end
@@ -327,7 +332,7 @@ class ReflowOSClient
   # 01FDSJXTEB1KHRQ4D3Q95WS95C in dev db
   
   # consume a resource 
-  def consume_one(token, agent_id, resource_id, event_note, ts)
+  def consume_one(token, agent_id, resource_id, event_note, ts, inputOf: nil)
     variables = {
       event: {
         note: event_note,
@@ -338,6 +343,9 @@ class ReflowOSClient
         resourceInventoriedAs: resource_id 
       }
     }
+    
+    variables[:event][:inputOf] = inputOf if inputOf != nil
+
     result = performEvent(token, variables)
     result.id #return value is event id
   end

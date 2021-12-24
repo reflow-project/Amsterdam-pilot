@@ -388,21 +388,36 @@ def container_put(container_key)
 end
 
 # all actions will perform graphql calls
-def use_batch(note)
+# wraps the use actions in a process as both input and output
+# if no process id is specified, it will create one
+def use_batch(note, process_id: nil)
   items = $context[:batch]
   performer = $context[:process_performer]
   agent = $agents[performer]
   date = $context[:date]
 
   puts "graphql USE by #{performer} on #{items.count} items" 
-  
+
+  if(process_id == nil)
+    process_id = $client.process(
+      agent[:token],
+      "use batch process #{note}",
+      "use batch for #{agent[:label]}",
+      date.iso8601
+    )
+    puts "created (use) process: #{process_id}"
+  end
+
   items.each do |item|
     event_id = $client.use_one(
         agent[:token], 
         agent[:agent_id], 
         item[:id], 
         note,
-        date.iso8601)
+        date.iso8601,
+        inputOf: process_id,
+        outputOf: process_id
+      )
     puts "Created Reflow OS Use event: #{event_id}"
   end
 end
@@ -444,7 +459,7 @@ end
 
 # perform a consume verb, if a fraction is specified operate on part of the batch, 
 # default operate on everything
-def consume_batch
+def consume_batch(process_id: nil)
   items = $context[:batch]
   performer = $context[:process_performer]
   puts "graphql CONSUME #{items.count} items by #{performer}"
@@ -452,13 +467,25 @@ def consume_batch
   agent = $agents[performer]
   date = $context[:date]
 
+  if(process_id == nil)
+    process_id = $client.process(
+      agent[:token],
+      "consume batch process #{note}",
+      "consume batch for #{agent[:label]}",
+      date.iso8601
+    )
+    puts "created (consume) process: #{process_id}"
+  end
+
   items.each do |item|
     event_id = $client.consume_one(
         agent[:token], 
         agent[:agent_id], 
         item[:id], 
         "consume for #{$context[:process_performer]}",
-        date.iso8601)
+        date.iso8601,
+        inputOf:process_id
+    )
 
     puts "Created Reflow OS Consume event: #{event_id}"
   end
@@ -483,7 +510,7 @@ def action_consume_container(container_key)
   puts "Created Reflow OS Consume container event: #{event_id}"
 end
 
-def produce_container(container_key)
+def produce_container(container_key, outputOf)
   manifest_items = $context[:batch]
   performer = $context[:process_performer] 
   puts "graphql PRODUCE #{container_key} with #{$containers[container_key][:items].count} items by #{performer}"
@@ -505,7 +532,9 @@ def produce_container(container_key)
           "#{resource_label} Container",
           "Manifest: #{manifest}",
           date.iso8601, 
-          unit_id) #returns container id
+          unit_id,
+          outputOf
+      ) #returns container id
 
   $containers[container_key][:id] = container_id
   puts "Created Reflow OS Container event: #{container_id}"
@@ -621,9 +650,26 @@ end
 # pack a batch into the container specified by container_key
 # side effect: produces a new resource and assigns it to the container key
 def pack_container(container_key)
-      consume_batch 
+
+      performer = $context[:process_performer]
+      agent = $agents[performer]
+      date = $context[:date]
+
+      process_id = $client.process(
+        agent[:token],
+        "pack process",
+        "pack by #{agent[:label]}",
+        date.iso8601
+      )
+      puts "created (pack) process: #{process_id}"
+
+      #the consume action is always inputOf the process
+      consume_batch(process_id: process_id) 
+      
       container_put container_key
-      produce_container container_key 
+
+      #the produce action in the pack is outputOf the process
+      produce_container(container_key, process_id)
 end
 
 #consumes the items in the batch, transforms to type of output
