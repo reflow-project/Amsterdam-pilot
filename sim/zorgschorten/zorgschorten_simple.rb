@@ -18,6 +18,7 @@ simulation("Transfer", Date.today - 1, Date.today) do
 		"OLVG locatie oost",
         "olvg.nl"
     pool :gowns, "Gowns", :gown, 1 #produces the one gown in the pool 
+    inventory :gown_stock, "Gown (in stock)", :gown, 1 # for test purposes 
   end
 
   agent :a_launderer, "CleanLease_Laundry_Service" do
@@ -41,10 +42,8 @@ simulation("Transfer", Date.today - 1, Date.today) do
       
       as_performer :a_launderer
 
-      #todo wrap unpack in vf:process, a_container inputOf, skirt batch outputOf 
       unpack_container :a_container 
 
-      #todo wrap modify batch in vf:process, inputOf+OutputOf
       modify_batch "performed deep clean at 100 deg"
 
     end

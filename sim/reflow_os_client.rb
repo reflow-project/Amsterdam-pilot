@@ -313,7 +313,7 @@ class ReflowOSClient
  
   # Modify a single resource
   # Does nothing to the resource except log an event
-  def modify_one(token, agent_id, resource_id, event_note, ts)
+  def modify_one(token, agent_id, resource_id, event_note, ts, inputOf: nil, outputOf: nil)
     variables = {
       event: {
         note: event_note,
@@ -324,6 +324,10 @@ class ReflowOSClient
         resourceInventoriedAs: resource_id 
       }
     }
+
+    variables[:event][:inputOf] = inputOf if inputOf != nil
+    variables[:event][:outputOf] = outputOf if outputOf != nil
+
     result = performEvent(token, variables)
     result.id #return value is event id
   end

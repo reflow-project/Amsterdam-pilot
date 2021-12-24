@@ -201,6 +201,14 @@ def inventory(key, label, resource_key, amount = 0)
   agent = $agents[$context[:agent_key]]
   date = $context[:date]
 
+  process_id = $client.process(
+    agent[:token],
+    "birth process",
+    "seed inventory for #{agent[:agent_id]}",
+    date.iso8601
+  )
+  puts "created (inventory birth) process: #{process_id}"
+
   stock_id = $client.produce_empty_container(
           agent[:token], 
           agent[:agent_id], 
@@ -209,7 +217,9 @@ def inventory(key, label, resource_key, amount = 0)
           "seed event for stock resource #{$context[:agent_key]} - #{$context[:date]}",
           "#{resource_label} Stock",
           date.iso8601,
-          unit_id)
+          unit_id,
+          process_id
+  )
 
   items = []
  
@@ -230,7 +240,9 @@ def inventory(key, label, resource_key, amount = 0)
           item[:description],
           date.iso8601,
           item[:unit],
-          stock_id)
+          stock_id,
+          process_id
+        )
  
         item[:created_by] = $context[:agent_key]
         item[:created_at_day] = $context[:date].iso8601
@@ -447,13 +459,23 @@ def use_batch(note, process_id: nil)
   end
 end
 
-def modify_batch(note)
+def modify_batch(note, process_id: nil)
   items = $context[:batch]
   performer = $context[:process_performer]
   agent = $agents[performer]
   date = $context[:date]
 
   puts "graphql MODIFY by #{performer} on #{items.count} items" 
+
+  if(process_id == nil)
+    process_id = $client.process(
+      agent[:token],
+      "modify process #{note}",
+      "modify batch for #{agent[:label]}",
+      date.iso8601
+    )
+    puts "created (modify) process: #{process_id}"
+  end
   
   items.each do |item|
     event_id = $client.modify_one(
@@ -461,7 +483,10 @@ def modify_batch(note)
         agent[:agent_id], 
         item[:id], 
         note,
-        date.iso8601)
+        date.iso8601,
+        inputOf: process_id,
+        outputOf: process_id
+    )
     puts "Created Reflow OS Modify event: #{event_id}"
   end
 end
