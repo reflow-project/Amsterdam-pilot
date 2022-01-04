@@ -105,7 +105,7 @@ Telegram::Bot::Client.run(token) do |bot|
 	case message
 	when Telegram::Bot::Types::CallbackQuery
 	  #clear the options
-	  # bot.api.edit_message_reply_markup(chat_id: message.message.chat.id, message_id: message.message.message_id, reply_markup: nil)
+	  bot.api.edit_message_reply_markup(chat_id: message.message.chat.id, message_id: message.message.message_id, reply_markup: nil)
 	  puts message.data # received one of the default answers
 	when Telegram::Bot::Types::Message
 	  puts message.text # received a normal answer / message
