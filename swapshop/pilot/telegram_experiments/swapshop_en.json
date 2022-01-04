@@ -1,4 +1,3 @@
-
 {
     "_comment_" : "Each question has a unique key which corresponds to the state, the value consists of an array of strings, the first one is the question, the subsequent strings int the array are considered the default answers that the bot will send. Each key is made out of separate parts which describes the dialog branch that the question is part of",
     "main_intro" : ["Hi swapper! Glad you're participating in this research, that is a collaboration between Reflow.EU, the municipality of Amsterdam  and The Swapshop! This Telegram chat  is the place to share your experiences and adventures with this garment. We are looking forward to recording the journey of this garment with you. Together with all other carriers of this item, we will write a beautiful journey."],
