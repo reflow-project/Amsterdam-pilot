@@ -1,13 +1,14 @@
 # telegram bot for handling swaps
 require 'telegram/bot'
 require 'dotenv/load'
-require 'byebug'
 Dotenv.require_keys('TELEGRAM_TOKEN')
 
 SKU_REGEX = %r{\ARP(?<nr>\d\d\d\d\d)\Z}
 class SwapBot
 
-  # TODO validation code that is generated at seed time
+  #these are the chatbot definitions, available via class variable
+  @@questions = JSON.parse(File.read('swapshop_en.json'))
+
   def is_valid?(tracking_id)
       valid_id = false
       if tracking_id.match(SKU_REGEX)
@@ -17,183 +18,184 @@ class SwapBot
       valid_id
   end
 
-  def do_swap_shop_registration_flow(tracking_id, bot, agent, message, res)
-    agent.dialog_subject = res.id 
-    res.owner = agent.id
-    res.save!
-    agent.fsm.register
-    send_dialog(bot, agent, message) #kick off registration questions
-  end
+  #receive a default answer
+  def receive_button(bot, agent, button)
+    case button
+    when "SWAP"
+      agent.fsm.branch_swap
+    when "WEAR"
+      agent.fsm.branch_wear
+    when "CARE"
+      agent.fsm.branch_care
+    when "OTHER"
+      agent.fsm.branch_other
+    when "REPAIRED"
+      agent.fsm.branch_repaired
+    when "ADJUSTED"
+      agent.fsm.branch_adjusted
+    when "CANCEL"
+      agent.fsm.cancel
+    when "YES" #answering yes always does next
+      if (agent.dialog_state == :new_summary)
+        puts "TODO generate title and description for resource"
+        # res.title = message.text
+        # res.description = message.text
+        # res.save!
 
-  #we're in root state handling commands only
-  def handle_commands(bot, agent, message)
-
-    if(message.text.start_with? "/role #{ENV['ROLE_PW']}")
-      agent.toggle_role!
-      bot.api.send_message(chat_id: message.chat.id, text: "role: #{agent.agent_type}")
-    end 
-
-    if(message.text.start_with? "/start ")
-      puts message.text
-      tracking_id = message.text[7..-1]
-      puts tracking_id
-
-      if not is_valid? tracking_id
-        bot.api.send_message(chat_id: message.chat.id, text: "dit is een ongeldig tracking id. Heb je misschien een typfout gemaakt?")
-        return
+        puts "TODO create BORN event"
+        # we have everything so ready to be born in reflow os
+        #     Event.create(event_type: SwapEvent::BORN, 
+        #                    source_agent_id: agent.id, 
+        #                    target_agent_id: agent.id, 
+        #                    resource_id: res.id, 
+        #                    location: "Amsterdam")
+        #
       end
-
-      res = Resource.find_by tracking_id: tracking_id
-      if(res != nil and res.owner == agent.id)
-        bot.api.send_message(chat_id: message.chat.id, text: "je bent al eigenaar van #{tracking_id}!")
-        return
+      if(agent.dialog_state == :new_photo)
+        #TODO update the photo of the resource to the url saved in the transcript
+        puts "TODO update resource photo"
       end
-
-      #/swap performed by swapshop, either new or swap in
-      if(agent.agent_type == AgentType::SWAPSHOP)
-        if(res != nil and res.owner == nil)
-          do_swap_shop_registration_flow(tracking_id, bot, agent, message, res)
-        else
-          prev_owner_id = res.owner
-          Event.create(event_type: SwapEvent::SWAP_IN, 
-                       source_agent_id: prev_owner_id, 
-                       target_agent_id: agent.id, 
-                       resource_id: res.id, 
-                       location: "Amsterdam")
-
-          res.owner = agent.id
-          res.save!
-          bot.api.send_message(chat_id: message.chat.id, text: "#{tracking_id} is weer terug bij de swapshop!")
-        end
-      end
-
-      #/swap performed by participant, either with the swap shop or with a friend
-      if(agent.agent_type == AgentType::PARTICIPANT)
-        if(res == nil || res.owner == nil)
-          bot.api.send_message(chat_id: message.chat.id, text: "dit tracking id is onbekend.")
-        else
-          
-          #depending on if it's a swap between shop and participant or between two participants we register a different event type
-          prev_agent = Agent.find(res.owner)
-          event_type = (prev_agent.agent_type == AgentType::PARTICIPANT) ? SwapEvent::SWAP : SwapEvent::SWAP_OUT
-          Event.create(event_type: event_type, 
-                       source_agent_id: prev_agent.id, 
-                       target_agent_id: agent.id, 
-                       resource_id: res.id, 
-                       location: "Amsterdam")
-
-          res.owner = agent.id
-          res.save!
-          agent.dialog_subject = res.id
-          agent.fsm.swap
-          send_dialog(bot, agent, message) #kick off follow  up questions
-        end
-      end
+      agent.fsm.next
+    when "NO"
+      agent.fsm.no
+    else
+      # received one of the default answers
+      puts "unhandled button: #{button}"
+      # probably persist as a default answer
+      agent.fsm.next #for now just do next everytime
     end
+    send_dialog(bot,agent)
   end
-            
+
   def receive_dialog(bot,agent,message)
     puts "received answer for #{agent.dialog_state} -> #{message.text} regarding #{agent.dialog_subject}"
     res = Resource.find(agent.dialog_subject) 
-   
-    valid_answer = false
 
-    case agent.dialog_state.to_sym
-    when :r_title
-      #update the title but for what resource? 
-      puts "updating title for resource #{agent.dialog_subject}"
-      res.title = message.text
-      res.save!
-      valid_answer = true
-    when :r_description
-      puts "updating description for resource #{agent.dialog_subject}"
-      res.description = message.text
-      res.save!
-      valid_answer = true
-    when :r_photo
-      puts "updating photo for resource #{agent.dialog_subject}"
+    value = message.text
 
-      #for now we just show the image from telegram, no need to save, wonder how long it stays on server though?
-      url = image_url(bot,message,agent.dialog_subject) 
-      if(url)
-        res.image_url = url 
-        res.save!
-       
-        #we have everything so ready to be born in reflow os
-        Event.create(event_type: SwapEvent::BORN, 
-                       source_agent_id: agent.id, 
-                       target_agent_id: agent.id, 
-                       resource_id: res.id, 
-                       location: "Amsterdam")
-        
-        valid_answer = true
-      end
-    when :s_q1, :s_q2
-      Transcript.create(resource_id: res.id,
-                        agent_id: agent.id,
-                        dialog_key: agent.dialog_state,
-                        dialog_value: message.text)
-      valid_answer = true
-    when :s_q_photo
-      url = image_url(bot,message,res.id) 
-      if(url)
-        Transcript.create(resource_id: res.id,
-                        agent_id: agent.id,
-                        dialog_key: agent.dialog_state,
-                        dialog_value: url)
-        valid_answer = true
-      end
-    else
-      puts "unhandled dialog: #{agent.dialog_state}"
+    #save url to downloaded photo in :new_photo state as transcript value
+    if(agent.dialog_state == :new_photo.to_s)
+      url = image_url(bot,agent,message) 
+      value = url if url != nil
+    end
+
+    Transcript.create(resource_id: res.id,
+                      agent_id: agent.id,
+                      dialog_key: agent.dialog_state,
+                      dialog_value: value)
+
+    agent.fsm.next
+    send_dialog(bot,agent)
+
+    #probably all these should go after a confirmation
+    if(agent.dialog_state == :swap_end.to_s)
+      #         prev_agent = Agent.find(res.owner)
+      #         event_type = (prev_agent.agent_type == AgentType::PARTICIPANT) ? SwapEvent::SWAP : SwapEvent::SWAP_OUT
+      #         Event.create(event_type: event_type, 
+      #                      source_agent_id: prev_agent.id, 
+      #                      target_agent_id: agent.id, 
+      #                      resource_id: res.id, 
+      #                      location: "Amsterdam")
+
+      #         res.owner = agent.id
+      #         res.save!
+    end
+
+    if(agent.dialog_state == :wear_share_confirmation)
+
+    end
+
+    if(agent.dialog_state == :care_adjusted_end)
+      
     end
     
-    if(valid_answer) 
-      agent.fsm.next
-      send_dialog(bot,agent,message)
+    if(agent.dialog_state == :care_repaired_end)
+      
     end
+
   end
 
   #download a foto and return url
-  def image_url(bot, message, subject_id)
+  def image_url(bot, agent, message)
     token = ENV['TELEGRAM_TOKEN']
     if message.photo.count > 0
 
       #download the photo from telegram
+      subject_id = agent.dialog_subject
       photo_id = message.photo.last.file_id
       foto = bot.api.get_file(file_id: photo_id)  #get the file meta data
       path = foto["result"]["file_path"]
       telegram_url = "https://api.telegram.org/file/bot#{token}/#{path}"  
-      `curl #{telegram_url} > public/uploads/#{subject_id}.jpg`
-      "/uploads/#{subject_id}.jpg" 
+      `curl #{telegram_url} > public/uploads/#{agent.id}_#{subject_id}.jpg`
+      "/uploads/#{agent.id}_#{subject_id}.jpg" 
     end
   end
 
-  def send_dialog(bot, agent, message)
-    #all these keys correspond to the fsm states defined in the agent model
-    questions = {
-      :r_title => "Wat is de titel van dit item?",
-      :r_description => "Hoe zou je het item omschrijven?",
-      :r_photo => "Kun je een foto van het item opsturen?",
-      :s_q1 => "Vraag 1: Waarom heb je dit item gekozen?",
-      :s_q2 => "Vraag 2: Wanneer denk je dat je het zult dragen?",
-      :s_q_photo => "Kun je een foto van het item opsturen?",
-      :root => "Bedankt voor het meedoen! Geef een /swap commando om te beginnen met een nieuw kledingstuk."
+  def send_dialog(bot, agent)
+    q_defs = @@questions[agent.dialog_state.to_s] 
+    q_text = q_defs.first #should exist always
+    q_answers = q_defs[1..] # can be empty array
+
+    # create one time, inline keyboard if there are default answers
+    kb = q_answers.map{ |answer| 
+      Telegram::Bot::Types::InlineKeyboardButton.new(text: answer, callback_data: answer)
     }
-    question = questions[agent.dialog_state.to_sym]
-    bot.api.send_message(chat_id: message.chat.id, text: question)
+    q_options = Telegram::Bot::Types::InlineKeyboardMarkup.new(inline_keyboard: kb, one_time_keyboard: true)
+    bot.api.send_message(chat_id: agent.telegram_id, text: q_text, reply_markup: q_options)
+  end
+
+  def handle_start(bot, agent, message)
+    tracking_id = message.text[7..-1]
+    if not is_valid? tracking_id
+      bot.api.send_message(chat_id: message.chat.id, text: "invalid tracking id!")
+      return
+    end
+  
+    #since we only get the tracking id at start, we need to always save 
+    #it as subject of the current conversatino
+    res = Resource.find_by tracking_id: tracking_id
+    agent.dialog_state = :start.to_s #were starting a new dialog so do a reset
+    agent.dialog_subject = res.id 
+    agent.save!
+
+    #always send the start dialog to mark the beginning of a fresh chat
+    send_dialog(bot,agent)
+
+    if(res != nil and res.owner == nil) 
+      #set the current agent as owner if it has none, and kick off the new branch
+      res.owner = agent.id
+      res.save!
+	  agent.fsm.branch_new 
+    elsif(res != nil and res.owner != nil) 
+	  agent.fsm.branch_main #if the resource is already owned, kick of th main branch
+    end
+    send_dialog(bot,agent)
   end
 
   def listen 
     token = ENV['TELEGRAM_TOKEN']
+
     Telegram::Bot::Client.run(token) do |bot|
       bot.listen do |message|
-        agent = Agent.find_or_create_by_telegram_id(message.chat.id)
-        puts agent.dialog_state
-        case agent.dialog_state.to_sym
-        when :root
-          handle_commands(bot, agent, message)
-        else
-          receive_dialog(bot, agent, message)
+        case message
+        when Telegram::Bot::Types::CallbackQuery
+          agent = Agent.find_or_create_by_telegram_id(message.message.chat.id)
+          begin
+          bot.api.edit_message_reply_markup(chat_id: message.message.chat.id, message_id: message.message.message_id, reply_markup: nil) #clear the inline options
+          rescue Telegram::Bot::Exceptions::ResponseError 
+            puts "clearing error not fatal"
+          end
+          receive_button(bot,agent,message.data) #handle the callback
+        when Telegram::Bot::Types::Message
+             agent = Agent.find_or_create_by_telegram_id(message.chat.id)
+             if(message.text != nil and message.text.start_with? "/start ")
+               handle_start(bot, agent, message)
+             elsif(message.text != nil and message.text.start_with? "/role #{ENV['ROLE_PW']}")
+              agent.toggle_role!
+              bot.api.send_message(chat_id: message.chat.id, text: "role: #{agent.agent_type}")
+             else 
+               receive_dialog(bot, agent, message) #handle a normal text message
+             end
         end
       end
     end

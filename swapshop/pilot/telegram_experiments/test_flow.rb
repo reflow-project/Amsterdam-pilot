@@ -27,7 +27,6 @@ fsm ||= FiniteMachine.new(agent) do
   #todo show intro on start, and then main (two messages)
   initial :start
 
-  # todo determine automatically 
   # if an item is new item, then we go automatically in new branch
   event :branch_new, :start => :new_kind
   event :branch_main, :start => :main
