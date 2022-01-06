@@ -37,6 +37,24 @@ fsm ||= FiniteMachine.new(agent) do
   event :branch_other, :main => :other_intro
   event :branch_wear, :main => :wear_intro
   event :branch_swap, :main => :swap_intro
+ 
+  # the care branches
+  event :branch_adjusted, :care_intro => :care_adjusted
+  event :branch_repaired, :care_intro => :care_repaired
+  event :cancel, :care_intro => :main
+
+  # the care adjusted sub branch 
+  event :next,
+        :care_adjusted => :care_adjusted_reason,
+        :care_adjusted_reason => :care_adjusted_end,
+        :care_adjusted_end => :main
+  
+  # the care repaired sub branch 
+  event :next,
+        :care_repaired => :care_repaired_end,
+        :care_repaired_end => :main
+
+
   #the 'new' branch happy flow (18 questions)
   event :next, 
 		:new_kind => :new_model,
@@ -79,11 +97,39 @@ fsm ||= FiniteMachine.new(agent) do
 end
 
 agent.fsm = fsm
-agent.fsm.branch_new #immediately go to the new branch for testing
+#agent.fsm.branch_new #immediately go to this branch for testing
+agent.fsm.branch_main #immediately go to this branch for testing
 
 def receive_dialog(bot, agent, message)
+	puts message.text # received a normal answer / message
 	agent.fsm.next #for now just do next everytime
     send_dialog(bot,agent)
+end
+
+#receive a default answer
+def receive_button(bot, agent, button)
+      case button
+      when "SWAP"
+          agent.fsm.branch_swap
+      when "WEAR"
+          agent.fsm.branch_wear
+      when "CARE"
+          agent.fsm.branch_care
+      when "OTHER"
+          agent.fsm.branch_other
+      when "REPAIRED"
+          agent.fsm.branch_repaired
+      when "ADJUSTED"
+          agent.fsm.branch_adjusted
+      when "CANCEL"
+          agent.fsm.cancel
+      else
+        # received one of the default answers
+	    puts "unhandled button: #{button}"
+        # probably persist as a default answer
+        agent.fsm.next #for now just do next everytime
+      end
+      send_dialog(bot,agent)
 end
 
 def send_dialog(bot, agent)
@@ -106,11 +152,10 @@ Telegram::Bot::Client.run(token) do |bot|
 	when Telegram::Bot::Types::CallbackQuery
 	  #clear the options
 	  bot.api.edit_message_reply_markup(chat_id: message.message.chat.id, message_id: message.message.message_id, reply_markup: nil)
-	  puts message.data # received one of the default answers
+      receive_button(bot,agent,message.data)
 	when Telegram::Bot::Types::Message
-	  puts message.text # received a normal answer / message
+	  receive_dialog(bot,agent,message)
 	end
-	receive_dialog(bot,agent,message)
   end
 end
 

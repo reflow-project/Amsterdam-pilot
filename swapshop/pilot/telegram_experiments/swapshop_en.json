@@ -20,7 +20,7 @@
     "new_publish" : ["Do you want this to be seen on the website?", "Yes", "No"],
     "new_confirmation": ["Cool! Your photo will soon be visible on the item's page."],
     "new_end" : ["Thank you I will process the data."],
-    "care_intro" : ["What action did you perform with the item?","REPAIRED","ADJUSTED","DIFFERENT","CANCEL"],
+    "care_intro" : ["What action did you perform with the item?","REPAIRED","ADJUSTED","CANCEL"],
     "care_adjusted" : ["Great that you edited the item! What exactly did you do?"],
     "care_adjusted_reason" : ["Why did you edit the item?"],
     "care_ajusted_end" : ["Good job!"],
