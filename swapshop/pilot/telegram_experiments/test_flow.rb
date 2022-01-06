@@ -54,6 +54,36 @@ fsm ||= FiniteMachine.new(agent) do
         :care_repaired => :care_repaired_end,
         :care_repaired_end => :main
 
+  # the other branch happy flow
+  event :next, 
+        :other_intro => :other_share,
+        :other_share => :other_share_yes,
+        :other_share_yes => :main,
+        :other_share_no => :main
+
+  # other branch unhappy flow
+  event :no, 
+        :other_share => :other_share_no
+
+  # the wear branch happy flow
+  event :next,
+        :wear_intro => :wear_occasion,
+        :wear_occasion => :wear_share,
+        :wear_share => :wear_share_confirmation,
+        :wear_share_confirmation => :main
+
+  # wear branch unhappy flow
+  event :no, 
+        :wear_intro => :main, # basically a cancel
+        :wear_share => :main # we save it but don't share it
+
+  # swap branch flow
+  event :next, 
+        :swap_intro => :swap_date,
+        :swap_date => :swap_origin,
+        :swap_origin => :swap_reason,
+        :swap_reason => :swap_end,
+        :swap_end => :main
 
   #the 'new' branch happy flow (18 questions)
   event :next, 
@@ -82,13 +112,7 @@ fsm ||= FiniteMachine.new(agent) do
 		:new_publish => :new_end,#skip the publishing part
 		:new_photo => :new_end #skip the photo part
 
-  #for now we don't implement the quizzes yet
-
-  #participant swap new item branch
-  event :swap, :root => :s_q1
-  event :next, :s_q1 => :s_q2
-  event :next, :s_q2 => :s_q_photo
-  event :next, :s_q_photo => :root
+  #TODO for now we don't implement the quizzes yet, comes at a later stage
 
   on_enter do |event|
 	target.dialog_state = event.to
@@ -123,6 +147,10 @@ def receive_button(bot, agent, button)
           agent.fsm.branch_adjusted
       when "CANCEL"
           agent.fsm.cancel
+      when "YES" #answering yes always does next
+          agent.fsm.next
+      when "NO"
+          agent.fsm.no
       else
         # received one of the default answers
 	    puts "unhandled button: #{button}"
