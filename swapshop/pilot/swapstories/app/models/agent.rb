@@ -108,6 +108,14 @@ class Agent < ApplicationRecord
         :new_publish => :new_end,#skip the publishing part
         :new_photo => :new_end #skip the photo part
 
+	  handle FiniteMachine::InvalidStateError do |exception|
+		puts "invalid state: #{exception}"
+	  end
+
+	  handle FiniteMachine::TransitionError do |exception| 
+		puts "transition error: #{exception}"
+	  end 
+      
       on_enter do |event|
         target.dialog_state = event.to
         target.save!

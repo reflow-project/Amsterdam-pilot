@@ -60,8 +60,10 @@ class SwapBot
       agent.fsm.no
     else
       # received one of the default answers
-      puts "unhandled button: #{button}"
-      # probably persist as a default answer
+      Transcript.create(resource_id: agent.dialog_subject,
+                      agent_id: agent.id,
+                      dialog_key: agent.dialog_state,
+                      dialog_value: button)
       agent.fsm.next #for now just do next everytime
     end
     send_dialog(bot,agent)
@@ -87,7 +89,7 @@ class SwapBot
     agent.fsm.next
     send_dialog(bot,agent)
 
-    #probably all these should go after a confirmation
+    #TODO probably all these should go after a confirmation
     if(agent.dialog_state == :swap_end.to_s)
       #         prev_agent = Agent.find(res.owner)
       #         event_type = (prev_agent.agent_type == AgentType::PARTICIPANT) ? SwapEvent::SWAP : SwapEvent::SWAP_OUT
@@ -102,15 +104,15 @@ class SwapBot
     end
 
     if(agent.dialog_state == :wear_share_confirmation)
-
+      # TODO create corresponding event
     end
 
     if(agent.dialog_state == :care_adjusted_end)
-      
+      # TODO create corresponding event 
     end
     
     if(agent.dialog_state == :care_repaired_end)
-      
+      # TODO create corresponding event 
     end
 
   end
@@ -141,7 +143,25 @@ class SwapBot
       Telegram::Bot::Types::InlineKeyboardButton.new(text: answer, callback_data: answer)
     }
     q_options = Telegram::Bot::Types::InlineKeyboardMarkup.new(inline_keyboard: kb, one_time_keyboard: true)
+ 
+    # expand summary template
+    if(agent.dialog_state == :new_summary.to_s)
+      q_text = create_summary(q_text, agent.dialog_subject) 
+    end
+
     bot.api.send_message(chat_id: agent.telegram_id, text: q_text, reply_markup: q_options)
+  end
+
+  def create_summary(template, resource_id)
+    res = Resource.find(resource_id)
+    answers = res.transcripts.map { |t| [t.dialog_key, t.dialog_value]}.to_h
+    template % [
+      answers[:new_kind.to_s],
+      answers[:new_model.to_s],
+      answers[:new_color.to_s],
+      answers[:new_size.to_s],
+      answers[:new_brand.to_s]
+    ] 
   end
 
   def handle_start(bot, agent, message)
@@ -154,7 +174,9 @@ class SwapBot
     #since we only get the tracking id at start, we need to always save 
     #it as subject of the current conversatino
     res = Resource.find_by tracking_id: tracking_id
-    agent.dialog_state = :start.to_s #were starting a new dialog so do a reset
+    
+	agent.dialog_state = :start.to_s #also needed for reset
+	agent.fsm.restore!(:start) #reset the machine at start command	
     agent.dialog_subject = res.id 
     agent.save!
 
@@ -163,9 +185,9 @@ class SwapBot
 
     if(res != nil and res.owner == nil) 
       #set the current agent as owner if it has none, and kick off the new branch
+	  agent.fsm.branch_new 
       res.owner = agent.id
       res.save!
-	  agent.fsm.branch_new 
     elsif(res != nil and res.owner != nil) 
 	  agent.fsm.branch_main #if the resource is already owned, kick of th main branch
     end
@@ -187,6 +209,7 @@ class SwapBot
           end
           receive_button(bot,agent,message.data) #handle the callback
         when Telegram::Bot::Types::Message
+             puts "received: #{message.text}"
              agent = Agent.find_or_create_by_telegram_id(message.chat.id)
              if(message.text != nil and message.text.start_with? "/start ")
                handle_start(bot, agent, message)
