@@ -10,7 +10,7 @@
     "new_material" : ["What is the material? (fill in Unknown if the material is unknown)", "Unknown"],
     "new_extra" : ["Do you want to add something specific?"],
     "new_summary" : ["So these are %s %s %s in size %s from %s. Is that correct?","YES","NO"],
-    "new_memory" : ["Would you like to add a personal reminder to this item? (e.g. a special occasion, sentimental value or bought in a special place). Type in your answer or just say No.","No"],
+    "new_memory" : ["Would you like to add a personal memory about this item? (e.g. a special occasion, sentimental value or bought in a special place). Type in your answer or just say No.","No"],
     "new_date" : ["When and where did you purchase this item?"],
     "new_usage" : ["Approximately how long and how often have you worn this item?"],
     "new_last" : ["When was the last time you wore this item?"],

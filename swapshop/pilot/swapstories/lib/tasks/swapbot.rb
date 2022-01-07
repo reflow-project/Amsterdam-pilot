@@ -18,6 +18,36 @@ class SwapBot
       valid_id
   end
 
+  # update the resource 
+  # the agent is currently chatting about
+  def birth_resource_for(agent)
+	res = Resource.find(agent.dialog_subject) 
+	answers = res.transcripts.map { |t| [t.dialog_key, t.dialog_value]}.to_h
+	res.title =	"%s" % [answers[:new_kind.to_s]]
+	res.description = "%s %s %s %s %s" % [
+	  answers[:new_kind.to_s],
+	  answers[:new_model.to_s],
+	  answers[:new_color.to_s],
+	  answers[:new_size.to_s],
+	  answers[:new_brand.to_s]
+	] 
+	res.save!
+	Event.create(event_type: SwapEvent::BORN, 
+				 source_agent_id: agent.id, 
+				 target_agent_id: agent.id, 
+				 resource_id: res.id, 
+				 location: "Amsterdam")
+  end
+
+  # publish the photo for the resource 
+  # the agent is currently chatting about
+  def publish_photo_for(agent)
+	res = Resource.find(agent.dialog_subject) 
+	answers = res.transcripts.map { |t| [t.dialog_key, t.dialog_value]}.to_h
+	res.image_url = answers[:new_photo.to_s] 	
+	res.save!
+  end
+
   #receive a default answer
   def receive_button(bot, agent, button)
     case button
@@ -36,24 +66,10 @@ class SwapBot
     when "CANCEL"
       agent.fsm.cancel
     when "YES" #answering yes always does next
-      if (agent.dialog_state == :new_summary)
-        puts "TODO generate title and description for resource"
-        # res.title = message.text
-        # res.description = message.text
-        # res.save!
-
-        puts "TODO create BORN event"
-        # we have everything so ready to be born in reflow os
-        #     Event.create(event_type: SwapEvent::BORN, 
-        #                    source_agent_id: agent.id, 
-        #                    target_agent_id: agent.id, 
-        #                    resource_id: res.id, 
-        #                    location: "Amsterdam")
-        #
-      end
-      if(agent.dialog_state == :new_photo)
-        #TODO update the photo of the resource to the url saved in the transcript
-        puts "TODO update resource photo"
+      if (agent.dialog_state == :new_summary.to_s) #if the summary is correct, create the details and the born event
+   			birth_resource_for(agent) 	        
+      elsif(agent.dialog_state == :new_publish.to_s)
+			publish_photo_for(agent)
       end
       agent.fsm.next
     when "NO"
