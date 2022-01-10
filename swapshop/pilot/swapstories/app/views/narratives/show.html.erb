@@ -6,9 +6,9 @@
 
 <div class="narrative">
   <div class="call_to_action">
-    <b>Ben jij mijn nieuwe eigenaar?</b>
+    <b>Are you the owner of this garment?</b>
     <!-- Praat met de <a href="https://t.me/tacostest_bot?start=<%=@resource.tracking_id %>">@swapbot</a-->
-    Praat met de <a href="tg://resolve?domain=tacostest_bot&start=<%=@resource.tracking_id %>">@swapbot</a>
+    Please have a chat with our <a href="tg://resolve?domain=tacostest_bot&start=<%=@resource.tracking_id %>">@swapbot</a>
   </div>
 
   <h1><%= @resource.title %></h1>
@@ -19,16 +19,15 @@
   </div>
   <br/>
   <div class="story">
-    <b>Mijn verhaal</b>
+    <b>The story so far</b>
     <p><span class="content"><%= @resource.story.content %></span></p>
   </div>
   <br/> 
   <div class="story">
-    <p>
-    <b>Mijn geschiedenis</b>
+    <b>Timeline</b>
     <ul>
       <% @resource.events.each do |event| %>
-        <li><%= event.created_at.strftime("%d %B, %Y") %>: <%= event.description %> @ <%= event.location %></li>
+        <li><%= event.created_at.strftime("%d %B, %Y") %>: <%= event.description %></li>
       <% end %>
     </ul>
     </p>
