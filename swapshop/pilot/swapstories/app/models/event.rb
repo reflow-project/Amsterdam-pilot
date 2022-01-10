@@ -5,6 +5,7 @@ module SwapEvent
   USE = 3
   REPAIR = 4
   SWAP = 5
+  ADJUST = 6
 end
 
 class Event < ApplicationRecord
@@ -28,6 +29,8 @@ class Event < ApplicationRecord
           "Use"
         when SwapEvent::REPAIR # repair by participant / shop
           "Repair"
+        when SwapEvent::ADJUST # adjustment made by participant / shop
+          "Adjusted"
         else
           ""
         end 

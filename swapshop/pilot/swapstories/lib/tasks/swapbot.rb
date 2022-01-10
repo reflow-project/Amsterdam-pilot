@@ -71,6 +71,13 @@ class SwapBot
       elsif(agent.dialog_state == :new_publish.to_s)
 			publish_photo_for(agent)
       end
+      if(agent.dialog_state == :wear_share.to_s)
+        Event.create(event_type: SwapEvent::USE, 
+                     source_agent_id: agent.id, 
+                     target_agent_id: agent.id, 
+                     resource_id: agent.dialog_subject, 
+                     location:nil)
+      end
       agent.fsm.next
     when "NO"
       agent.fsm.no
@@ -102,33 +109,51 @@ class SwapBot
                       dialog_key: agent.dialog_state,
                       dialog_value: value)
 
+
     agent.fsm.next
     send_dialog(bot,agent)
 
-    #TODO probably all these should go after a confirmation
+    #create events when at the end of the dialog branches
     if(agent.dialog_state == :swap_end.to_s)
-      #         prev_agent = Agent.find(res.owner)
-      #         event_type = (prev_agent.agent_type == AgentType::PARTICIPANT) ? SwapEvent::SWAP : SwapEvent::SWAP_OUT
-      #         Event.create(event_type: event_type, 
-      #                      source_agent_id: prev_agent.id, 
-      #                      target_agent_id: agent.id, 
-      #                      resource_id: res.id, 
-      #                      location: "Amsterdam")
+      prev_agent = Agent.find(res.owner)
+      event_type = SwapEvent::SWAP
+     
+      #mark special cases where the swapshop is involved
+      if(prev_agent.agent_type == AgentType::PARTICIPANT && agent.agent_type == AgentType::SWAPSHOP)
+        event_type = SwapEvent::SWAP_IN
+      end
 
-      #         res.owner = agent.id
-      #         res.save!
+      if(prev_agent.agent_type == AgentType::SWAPSHOP && agent.agent_type == AgentType::PARTICIPANT)
+        event_type = SwapEvent::SWAP_OUT
+      end
+
+      Event.create(event_type: event_type, 
+                   source_agent_id: prev_agent.id, 
+                   target_agent_id: agent.id, 
+                   resource_id: res.id, 
+                   location: nil)
+      
+      # update the resource to reflect the new owner
+      res.owner = agent.id
+      res.save!
     end
 
-    if(agent.dialog_state == :wear_share_confirmation)
-      # TODO create corresponding event
-    end
+    
+    if(agent.dialog_state == :care_adjusted_end.to_s)
+      Event.create(event_type: SwapEvent::ADJUST, 
+				 source_agent_id: agent.id, 
+				 target_agent_id: agent.id, 
+				 resource_id: res.id, 
+				 location:nil)
 
-    if(agent.dialog_state == :care_adjusted_end)
-      # TODO create corresponding event 
     end
     
-    if(agent.dialog_state == :care_repaired_end)
-      # TODO create corresponding event 
+    if(agent.dialog_state == :care_repaired_end.to_s)
+      Event.create(event_type: SwapEvent::REPAIR, 
+				 source_agent_id: agent.id, 
+				 target_agent_id: agent.id, 
+				 resource_id: res.id, 
+				 location:nil)
     end
 
   end
