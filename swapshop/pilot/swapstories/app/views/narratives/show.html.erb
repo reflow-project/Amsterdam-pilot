@@ -8,7 +8,7 @@
   <div class="call_to_action">
     <b>Are you the owner of this garment?</b>
     <!-- Praat met de <a href="https://t.me/tacostest_bot?start=<%=@resource.tracking_id %>">@swapbot</a-->
-    Please have a chat with our <a href="tg://resolve?domain=tacostest_bot&start=<%=@resource.tracking_id %>">@swapbot</a>
+    Please have a chat with our <a href="tg://resolve?domain=<%= ENV['TELEGRAM_BOT_DOMAIN'] %>&start=<%=@resource.tracking_id %>">@swapbot</a>
   </div>
 
   <h1><%= @resource.title %></h1>
