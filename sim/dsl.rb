@@ -2,8 +2,16 @@ require 'date'
 require 'dotenv/load'
 require 'faker'
 require_relative 'reflow_os_client.rb'
+# require 'byebug'
 
- 
+$my_cnfig = nil
+if(File.file?('.config.yaml'))
+  puts "Reading configuration"
+  $my_cnfig = YAML.load_file('.config.yaml')
+else
+  puts "No configuration found"
+end
+
 #dsl for generating value flow simulation 
 # this simulation first generate all the necessary operations in a setup phase and a timetable
 # then executes the setup phase and when it's done the timetable on entry at a time using graphql requests with delays in between
@@ -22,20 +30,25 @@ def simulation(label, date_start = Date.today, date_end = Date.today + 365)
 
   # before yielding, create and authenticate the admin user
   # used for creating units and locations
-  email = Faker::Internet.email
-  pw = Faker::Alphanumeric.alphanumeric(number: 10, min_alpha: 3)
-  name = Faker::Name.unique.first_name 
-  id = $client.make_agent(email,pw,name,"Admin")
-  if(id != nil)
-    $context[:agent_key] = :a_admin
-    $agents[:a_admin] = {:label => "Admin", :email => email, :password => pw}
-    authenticate(email,pw)
+  if(! $my_cnfig.nil?)
+    email = $my_cnfig['a_hospital']['email']
+    pw = $my_cnfig['a_hospital']['pw']
+    name = $my_cnfig['a_hospital']['name']
   else
-    puts "creating admin failed"
-    exit
+    email = Faker::Internet.email
+    pw = Faker::Alphanumeric.alphanumeric(number: 10, min_alpha: 3)
+    name = Faker::Name.unique.first_name 
+    id = $client.make_agent(email,pw,name,"Admin")
+    if(id.nil?)
+      puts "creating admin failed"
+      exit      
+    end
   end
-  puts "Created admin: #{id}"
-
+  $context[:agent_key] = :a_admin
+  $agents[:a_admin] = {:label => "Admin", :email => email, :password => pw}
+  authenticate(email,pw)
+  
+  
   yield #setup / generate units, locations, agents, resources and schedule events
 
   # show internal state after setup
@@ -83,12 +96,19 @@ end
 # setup an agent
 $agents = Hash.new
 def agent(key, label)
-  #create and authenticate the agent
-  email = Faker::Internet.email
-  pw = Faker::Alphanumeric.alphanumeric(number: 10, min_alpha: 3)
-  name = "#{Faker::Name.unique.first_name}#{Faker::Number.number(digits: 4)}"
-  id = $client.make_agent(email,pw,name,label)
-  puts "created agent: #{id}"
+  if(! $my_cnfig.nil?)
+    my_key = key.to_s
+    email = $my_cnfig[my_key]['email']
+    pw = $my_cnfig[my_key]['pw']
+    name = $my_cnfig[my_key]['name']
+  else
+    #create and authenticate the agent
+    email = Faker::Internet.email
+    pw = Faker::Alphanumeric.alphanumeric(number: 10, min_alpha: 3)
+    name = "#{Faker::Name.unique.first_name}#{Faker::Number.number(digits: 4)}"
+    id = $client.make_agent(email,pw,name,label)
+    puts "created agent: #{id}"
+  end
   $agents[key] = {:label => label, :email => email, :password => pw}
   $context[:agent_key] = key #used as context for block 
   authenticate(email, pw)

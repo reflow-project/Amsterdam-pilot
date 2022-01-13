@@ -5,9 +5,16 @@ require 'dotenv/load'
 
 module ReflowOS
 
+    endpoint = "http://localhost:4000/api/graphql"
+    
+    if(File.file?('.config.yaml')) 
+      conf = YAML.load_file('.config.yaml')
+      endpoint = conf['instance']
+    end
+    puts "Client talking to endpoint #{endpoint}"
+  
     # setup graphql client 
-    HTTP = GraphQL::Client::HTTP.new("http://localhost:4000/api/graphql") do
-    # HTTP = GraphQL::Client::HTTP.new("http://135.181.35.156:4000/api/graphql") do
+    HTTP = GraphQL::Client::HTTP.new(endpoint) do
       def headers(context)
         headers = {}
         headers["User-Agent"] = "Simulation Client"
