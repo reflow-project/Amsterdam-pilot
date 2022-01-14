@@ -6,6 +6,10 @@ require_relative 'reflow_os_client.rb'
 
 $my_cnfig = nil
 if(File.file?('.config.yaml'))
+  # base data that needs to be present in .config.yaml: 
+  #
+  # - authentication for each agent
+  # - address of the instance (if not local)
   puts "Reading configuration"
   $my_cnfig = YAML.load_file('.config.yaml')
 else

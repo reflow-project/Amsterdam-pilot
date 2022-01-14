@@ -20,20 +20,15 @@ simulation("Zorgschorten", Date.today, Date.today + 30) do
 
   unit :u_piece, "om2:one", "#"
 
-  # base data that needs to be present in ENV: 
-  #
-  # - unit om:2 => ENV[UNIT_OM2]
-  # - authentication for each agent ENV[AGENT_OLVG_EMAIL] etc
-  # - location for each agent ENV[AGENT_OLVG_LOCATION] etc, to be passed during setup 
   resource :gown, "Gown", :u_piece do
     rid = SecureRandom.uuid
     # this id is not the reflow os id, but the id used by cleanlease to track the invidual gown
     {:tracking_id => "http://cleanlease.nl/zs/#{rid}", :description => "Clean Lease Schort: #{rid}"}
   end
 
-  # a container might acutally have it's own id (and a list of included items as description) but for now we assumen they are anonymous batches (they do get their own id in reflow os though)
+  # a container might actually have its own id (and a list of included items as description) but for now we assume they are anonymous batches (they do get their own id in reflow os though)
   # we only have one type of resource in the use cycle, but many collections of them
-  #resource collections that have no owner perse, used for transfer
+  # resource collections that have no owner per se, used for transfer
   # created on demand in Reflow OS as single transient economic resource from a batch of gowns
   container :gown_dirty_container, "Gown Container (dirty)", :gown 
   container :gown_clean, "Gown Container (clean)", :gown 
