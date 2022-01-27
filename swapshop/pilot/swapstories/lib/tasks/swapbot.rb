@@ -94,7 +94,12 @@ class SwapBot
 
   def receive_dialog(bot,agent,message)
     puts "received answer for #{agent.dialog_state} -> #{message.text} regarding #{agent.dialog_subject}"
-    res = Resource.find(agent.dialog_subject) 
+    begin
+      res = Resource.find(agent.dialog_subject)
+    rescue => e
+      puts "Exception: #{e}"
+      return
+    end
 
     value = message.text
 
