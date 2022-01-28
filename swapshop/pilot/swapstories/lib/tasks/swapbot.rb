@@ -243,29 +243,36 @@ class SwapBot
   def listen 
     token = ENV['TELEGRAM_TOKEN']
 
-    Telegram::Bot::Client.run(token) do |bot|
-      bot.listen do |message|
-        case message
-        when Telegram::Bot::Types::CallbackQuery
-          agent = Agent.find_or_create_by_telegram_id(message.message.chat.id)
-          begin
-          bot.api.edit_message_reply_markup(chat_id: message.message.chat.id, message_id: message.message.message_id, reply_markup: nil) #clear the inline options
-          rescue Telegram::Bot::Exceptions::ResponseError 
-            puts "clearing error not fatal"
+    while true     
+      begin
+        Telegram::Bot::Client.run(token) do |bot|
+          bot.listen do |message|
+            case message
+            when Telegram::Bot::Types::CallbackQuery
+              agent = Agent.find_or_create_by_telegram_id(message.message.chat.id)
+              begin
+                bot.api.edit_message_reply_markup(chat_id: message.message.chat.id, message_id: message.message.message_id, reply_markup: nil) #clear the inline options
+              rescue Telegram::Bot::Exceptions::ResponseError 
+                puts "clearing error not fatal"
+              end
+              receive_button(bot,agent,message.data) #handle the callback
+            when Telegram::Bot::Types::Message
+              puts "received: #{message.text}"
+              agent = Agent.find_or_create_by_telegram_id(message.chat.id)
+              if(message.text != nil and message.text.start_with? "/start ")
+                handle_start(bot, agent, message)
+              elsif(message.text != nil and message.text.start_with? "/role #{ENV['ROLE_PW']}")
+                agent.toggle_role!
+                bot.api.send_message(chat_id: message.chat.id, text: "role: #{agent.agent_type}")
+              else 
+                receive_dialog(bot, agent, message) #handle a normal text message
+              end
+            end
           end
-          receive_button(bot,agent,message.data) #handle the callback
-        when Telegram::Bot::Types::Message
-             puts "received: #{message.text}"
-             agent = Agent.find_or_create_by_telegram_id(message.chat.id)
-             if(message.text != nil and message.text.start_with? "/start ")
-               handle_start(bot, agent, message)
-             elsif(message.text != nil and message.text.start_with? "/role #{ENV['ROLE_PW']}")
-              agent.toggle_role!
-              bot.api.send_message(chat_id: message.chat.id, text: "role: #{agent.agent_type}")
-             else 
-               receive_dialog(bot, agent, message) #handle a normal text message
-             end
         end
+      rescue => e
+        puts "Exception: #{e}"
+        sleep 5
       end
     end
   end
