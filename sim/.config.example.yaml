@@ -1,0 +1,34 @@
+# FILL IN THIS FILE WITH YOUR CREDENTIALS AND INSTANCE ADDRESS
+# THEN RENAME IT TO .config.yaml IN THE SAME DIRECTORY
+
+# a_hospital
+# 52.35871773455108, 4.916762398221842
+# OLVG locatie oost
+# Oosterpark 9, 1091 AC Amsterdam
+a_hospital:
+  name: 'OLVG locatie oost'
+  email: 
+  pw: 
+  location_id: 
+
+# CleanLease Eindhoven
+# 51.47240440868687, 5.412460440524406
+# De Schakel 30, 5651 GH Eindhoven
+a_tsc:
+  name: 'CleanLease Eindhoven'
+  email: 
+  pw: 
+  location_id: 
+
+# CleanLease Zoetermeer
+# Stephensonstraat 40, 2723 RN Zoetermeer
+# 52.062687081961755, 4.52892943997495
+a_launderer:
+  name: 'CleanLease Zoetermeer'
+  email: 
+  pw: 
+  location_id: 
+
+
+# INSTANCE ADDRESS OF THE FORM 'http://135.181.35.156:4000/api/graphql'
+instance: 
