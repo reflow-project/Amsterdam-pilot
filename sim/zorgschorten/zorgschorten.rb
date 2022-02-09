@@ -16,7 +16,7 @@ require 'securerandom'
 #
 # - we could think about 'using' laundry machine resources for example
 #
-simulation("Zorgschorten", Date.today, Date.today + 30) do 
+simulation("Zorgschorten", Date.today, Date.today + 15) do 
 
   unit :u_piece, "om2:one", "#"
 
