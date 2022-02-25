@@ -227,7 +227,21 @@ class SwapBot
       q_text = create_summary(q_text, agent.dialog_subject) 
     end
 
-    bot.api.send_message(chat_id: agent.telegram_id, text: q_text, reply_markup: q_options)
+    # add back links to confirmation texts
+    parse_mode = nil
+    if(agent.dialog_state == :other_share_yes.to_s || 
+        agent.dialog_state == :wear_share_confirmation.to_s || 
+         agent.dialog_state == :new_confirmation)
+        q_text = add_backlink(q_text, agent.dialog_subject)
+        parse_mode = "HTML"
+    end
+    bot.api.send_message(chat_id: agent.telegram_id, text: q_text, reply_markup: q_options, parse_mode: parse_mode)
+  end
+
+  def add_backlink(template, resource_id)
+    res = Resource.find(resource_id)
+    link = "<a href=\"#{ENV['APP_URL']}/code/#{res.tracking_id}\">there</a>"
+    template % link  
   end
 
   def create_summary(template, resource_id)

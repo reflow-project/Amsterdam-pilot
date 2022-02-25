@@ -10,8 +10,8 @@ state = 0
 intro = "Hello dit is de bot, you will get two questions;\n say /start to start over or /stop to stop, zeg Okay om te beginnen met de eerste vraag"
 intro_options = Telegram::Bot::Types::ReplyKeyboardMarkup.new(keyboard: [%w(Okay)], one_time_keyboard: true)
  
-question1 = 'Hoeveel nieuwe kleding koop jij per maand?'
-question1= 'In welk jaar dit gekocht?'
+question1 = 'Hoeveel nieuwe kleding koop jij per maand? [inline URL](http://www.example.com/)'
+question1= 'In welk jaar dit gekocht? [inline URL](http://www.example.com/)'
 answers1 = Telegram::Bot::Types::ReplyKeyboardMarkup
       .new(keyboard: [%w(0-1 1-3), %w(meer)], one_time_keyboard: true)
 question2 = 'Hoeveel preloved tweedehands)  kleding koop jij per maand?'
@@ -40,7 +40,7 @@ bot.listen do |message|
     puts "received answer #{message.text} for state #{state}"
     if(state == 0)
       if(message.text == "Okay")
-          bot.api.send_message(chat_id: message.chat.id, text: question1, reply_markup: answers_year)
+          bot.api.send_message(chat_id: message.chat.id, text: question1, reply_markup: answers_year, parse_mode: "MarkdownV2")
           state = 2
       end
     elsif(state == 2)
