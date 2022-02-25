@@ -9,15 +9,15 @@ class NarrativesController < ApplicationController
     if is_valid?(tracking_id)
       @resource= Resource.where(["tracking_id = ?", params[:id]]).first
       if @resource == nil
-        res = Resource.create(title: 'Nader in te vullen',
-                          description: 'nader in te vullen',
+        res = Resource.create(title: '',
+                          description: '',
                           image_url: nil,
                           tracking_id: tracking_id,
                           shop_id: nil,
                           ros_id: nil,
                           owner: nil) 
         Story.create(resource_id: res.id,
-                 content: "Still empty")
+                 content: "")
 
         @resource = res
       end

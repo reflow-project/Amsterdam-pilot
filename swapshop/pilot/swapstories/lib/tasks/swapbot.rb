@@ -184,11 +184,43 @@ class SwapBot
     q_text = q_defs.first #should exist always
     q_answers = q_defs[1..] # can be empty array
 
+      
     # create one time, inline keyboard if there are default answers
     kb = q_answers.map{ |answer| 
       Telegram::Bot::Types::InlineKeyboardButton.new(text: answer, callback_data: answer)
     }
+
     q_options = Telegram::Bot::Types::InlineKeyboardMarkup.new(inline_keyboard: kb, one_time_keyboard: true)
+ 
+    if(agent.dialog_state == :new_date_year.to_s)
+      row1 = %w(2013 2014 2015 2016 2017).map{ |answer| 
+        Telegram::Bot::Types::InlineKeyboardButton.new(text: answer, callback_data: answer)
+      }
+      row2 = %w(2018 2019 2020 2021 2022).map{ |answer| 
+        Telegram::Bot::Types::InlineKeyboardButton.new(text: answer, callback_data: answer)
+      }
+      row3 = ["2012 or earlier","I can't remember"].map{ |answer| 
+        Telegram::Bot::Types::InlineKeyboardButton.new(text: answer, callback_data: answer)
+      }
+      q_options = Telegram::Bot::Types::InlineKeyboardMarkup.new(inline_keyboard: [ row1, row2, row3], one_time_keyboard: true)
+    end
+ 
+    if(agent.dialog_state == :new_date_month.to_s)
+      row1 = %w(Jan Feb Mar Apr).map{ |answer| 
+        Telegram::Bot::Types::InlineKeyboardButton.new(text: answer, callback_data: answer)
+      }
+      row2 = %w(May Jun Jul Aug).map{ |answer| 
+        Telegram::Bot::Types::InlineKeyboardButton.new(text: answer, callback_data: answer)
+      }
+      row3 = ["Sep","Oct", "Nov", "Dec"].map{ |answer| 
+        Telegram::Bot::Types::InlineKeyboardButton.new(text: answer, callback_data: answer)
+      }
+      row4 = ["I can't remember"].map{ |answer| 
+        Telegram::Bot::Types::InlineKeyboardButton.new(text: answer, callback_data: answer)
+      }
+
+      q_options = Telegram::Bot::Types::InlineKeyboardMarkup.new(inline_keyboard: [ row1, row2, row3, row4 ], one_time_keyboard: true)
+    end
  
     # expand summary template
     if(agent.dialog_state == :new_summary.to_s)
@@ -220,7 +252,12 @@ class SwapBot
     #since we only get the tracking id at start, we need to always save 
     #it as subject of the current conversatino
     res = Resource.find_by tracking_id: tracking_id
-    
+    if res == nil      
+      #in case someone types a non existing id (shouldn't happen when you go through the site)
+      bot.api.send_message(chat_id: message.chat.id, text: "invalid tracking id!")
+      return
+    end
+
 	agent.dialog_state = :start.to_s #also needed for reset
 	agent.fsm.restore!(:start) #reset the machine at start command	
     agent.dialog_subject = res.id 
@@ -247,31 +284,41 @@ class SwapBot
       begin
         Telegram::Bot::Client.run(token) do |bot|
           bot.listen do |message|
-            case message
-            when Telegram::Bot::Types::CallbackQuery
-              agent = Agent.find_or_create_by_telegram_id(message.message.chat.id)
-              begin
-                bot.api.edit_message_reply_markup(chat_id: message.message.chat.id, message_id: message.message.message_id, reply_markup: nil) #clear the inline options
-              rescue Telegram::Bot::Exceptions::ResponseError 
-                puts "clearing error not fatal"
-              end
-              receive_button(bot,agent,message.data) #handle the callback
-            when Telegram::Bot::Types::Message
-              puts "received: #{message.text}"
-              agent = Agent.find_or_create_by_telegram_id(message.chat.id)
-              if(message.text != nil and message.text.start_with? "/start ")
-                handle_start(bot, agent, message)
-              elsif(message.text != nil and message.text.start_with? "/role #{ENV['ROLE_PW']}")
-                agent.toggle_role!
-                bot.api.send_message(chat_id: message.chat.id, text: "role: #{agent.agent_type}")
-              else 
-                receive_dialog(bot, agent, message) #handle a normal text message
+           
+            begin
+              case message
+              when Telegram::Bot::Types::CallbackQuery
+                agent = Agent.find_or_create_by_telegram_id(message.message.chat.id)
+                begin
+                  bot.api.edit_message_reply_markup(chat_id: message.message.chat.id, message_id: message.message.message_id, reply_markup: nil) #clear the inline options
+                rescue Telegram::Bot::Exceptions::ResponseError 
+                  puts "clearing error not fatal"
+                end
+                receive_button(bot,agent,message.data) #handle the callback
+              when Telegram::Bot::Types::Message
+                puts "received: #{message.text}"
+                agent = Agent.find_or_create_by_telegram_id(message.chat.id)
+                if(message.text != nil and message.text.start_with? "/start ")
+                  handle_start(bot, agent, message)
+                elsif(message.text != nil and message.text.start_with? "/role #{ENV['ROLE_PW']}")
+                  agent.toggle_role!
+                  bot.api.send_message(chat_id: message.chat.id, text: "role: #{agent.agent_type}")
+                else 
+                  receive_dialog(bot, agent, message) #handle a normal text message
+                end
               end
             end
+          rescue => e
+            # we want to handle all individual message errors before the outer loop, 
+            # otherwise the message will stay in the telegram queue and the error will repeat forever
+            puts "Exception handling message: #{e}"
+            puts e.backtrace
           end
         end
       rescue => e
-        puts "Exception: #{e}"
+        # errors in the outer loop have to do with connectivity, let's just try to connect again in 5 seconds
+        puts "Exception in run loop: #{e}"
+        puts e.backtrace
         sleep 5
       end
     end

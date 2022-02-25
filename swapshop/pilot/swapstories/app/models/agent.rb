@@ -91,15 +91,17 @@ class Agent < ApplicationRecord
         :new_material => :new_extra,
         :new_extra => :new_summary,
         :new_summary => :new_memory, #yes equals next in this case
-        :new_memory => :new_date,
-        :new_date => :new_usage,
+        :new_memory => :new_location,
+        :new_location => :new_date_year,
+        :new_date_year => :new_date_month,
+        :new_date_month => :new_usage,
         :new_usage => :new_last,
         :new_last => :new_reason,
         :new_reason => :new_pm,
         :new_pm => :new_photo,
         :new_photo => :new_publish, #yes equals next in this case
         :new_publish => :new_confirmation,
-        :new_confirmation => :new_end,
+        :new_confirmation => :main,
         :new_end => :main #and we're back
 
       #the 'new' branch exceptions

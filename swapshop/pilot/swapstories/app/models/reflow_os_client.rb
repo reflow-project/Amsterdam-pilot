@@ -126,6 +126,7 @@ class ReflowOsClient
       password: password
     }
     result = ReflowOS::Client.query(ReflowOS::LoginQuery, variables: variables)
+    puts result.original_hash
     result.data.login.token #bearer token
   end
 

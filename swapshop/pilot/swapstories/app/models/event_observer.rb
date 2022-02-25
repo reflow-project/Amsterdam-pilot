@@ -7,24 +7,29 @@ class EventObserver < ActiveRecord::Observer
     if(event.event_type == SwapEvent::BORN)
 
       puts "registering: #{event.resource.inspect} in reflow os"
-      client = ReflowOsClient.new
-      token = client.login(ENV['ROS_EMAIL'],ENV['ROS_PW'])
-      agent_id = client.me(token)
+      begin
+        client = ReflowOsClient.new
+        token = client.login(ENV['ROS_EMAIL'],ENV['ROS_PW'])
+        agent_id = client.me(token)
 
-      result = client.produce_one(
-        token, 
-        agent_id, 
-        event.resource.title, 
-        event.resource.tracking_id, 
-        ENV['ROS_LOCATION'],
-        "born event for item #{event.resource.id}",
-        event.resource.description,
-        event.created_at.iso8601,
-        ENV['ROS_UNIT'])
-      event.ros_id = result.id
-      event.resource.ros_id = result.resource_inventoried_as.id  
-      event.resource.save!
-      event.save!
+        result = client.produce_one(
+          token, 
+          agent_id, 
+          event.resource.title, 
+          event.resource.tracking_id, 
+          ENV['ROS_LOCATION'],
+          "born event for item #{event.resource.id}",
+          event.resource.description,
+          event.created_at.iso8601,
+          ENV['ROS_UNIT'])
+
+        event.ros_id = result.id
+        event.resource.ros_id = result.resource_inventoried_as.id  
+        event.resource.save!
+        event.save!
+      rescue => e
+        puts "Reflow OS Client error: #{e}"
+      end
     end
   end
 end

@@ -13,24 +13,41 @@
 
   <h1><%= @resource.title %></h1>
   <p><%= @resource.description %></p>
-  
+   
   <div class= "main-image">
   <img src="<%= @resource.image_url %>" width="200px" />
   </div>
   <br/>
-  <div class="story">
-    <b>The story so far</b>
-    <p><span class="content"><%= @resource.story.content %></span></p>
-  </div>
-  <br/> 
-  <div class="story">
-    <b>Timeline</b>
-    <ul>
-      <% @resource.events.each do |event| %>
-        <li><%= event.created_at.strftime("%d %B, %Y") %>: <%= event.description %></li>
-      <% end %>
-    </ul>
-    </p>
+  
+  <% if @resource.story.content.empty? == false %>
+    <div class="story">
+      <b>The story so far</b>
+      <p><span class="content"><%= @resource.story.content %></span></p>
+    </div>
+    <br/> 
+  <% end %>
 
-  </div>
+  <% if @resource.events.count > 0 %>
+    <div class="story">
+      <b>Timeline</b>
+      <ul>
+        <% @resource.events.each do |event| %>
+          <li><%= event.created_at.strftime("%d %B, %Y") %>: <%= event.description %></li>
+        <% end %>
+      </ul>
+      </p>
+    </div>
+  <% else %> 
+    <!-- no events yet, so the item is not registered, show the intro text -->
+<p>
+ Hi Swapper! Great that you are joining our study of the journey of swapped items. By receiving data from you, we will gain information about the adventures of your garments after they are swapped. We will create a data pasport per item, based on the information that you share with our Telegram Both. 
+<br><br>
+We will also measure and visualize the lifetime expansion and impact (saved CO2 and water) that we realized together by swapping this item (instead of buying a new piece of garment). Do you want to know more about this study and the impact measures? Visit <a href="https://www.the-swapshop.com/pages/reflow">our website</a>
+<br><br>
+Did you know that… China has 56% of the clothing market share? This means that on average 56% of the clothing in our wardrobe travels all the way from China to the Netherlands before it ends up in our wardrobe. 
+</p>
+<p>
+This research is a collaboration between Reflow.EU, Waag and The Swapshop.
+</p> 
+  <% end %>
 </div>

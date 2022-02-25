@@ -11,11 +11,18 @@ intro = "Hello dit is de bot, you will get two questions;\n say /start to start 
 intro_options = Telegram::Bot::Types::ReplyKeyboardMarkup.new(keyboard: [%w(Okay)], one_time_keyboard: true)
  
 question1 = 'Hoeveel nieuwe kleding koop jij per maand?'
+question1= 'In welk jaar dit gekocht?'
 answers1 = Telegram::Bot::Types::ReplyKeyboardMarkup
       .new(keyboard: [%w(0-1 1-3), %w(meer)], one_time_keyboard: true)
 question2 = 'Hoeveel preloved tweedehands)  kleding koop jij per maand?'
+question2 = 'En in welke maand heb je dit gekocht?'
 answers2 = Telegram::Bot::Types::ReplyKeyboardMarkup
-      .new(keyboard: [%w(0-1 1-3), %w(meer)], one_time_keyboard: true)
+
+answers_year = Telegram::Bot::Types::ReplyKeyboardMarkup
+      .new(keyboard: [ %w(2012 2013 2014 2015 2016 2017 2018 2019 2020 2021 2022), "Before 2012", "I don't remember"], one_time_keyboard: true)
+answers_month = Telegram::Bot::Types::ReplyKeyboardMarkup
+      .new(keyboard: [ %w(jan feb mar apr may jun jul aug sep oct nov dec),"I don't remember"], one_time_keyboard: true)
+
 goodbye = "dank je wel!"
 
 Telegram::Bot::Client.run(token) do |bot|
@@ -33,11 +40,11 @@ bot.listen do |message|
     puts "received answer #{message.text} for state #{state}"
     if(state == 0)
       if(message.text == "Okay")
-          bot.api.send_message(chat_id: message.chat.id, text: question1, reply_markup: answers1)
+          bot.api.send_message(chat_id: message.chat.id, text: question1, reply_markup: answers_year)
           state = 2
       end
     elsif(state == 2)
-      bot.api.send_message(chat_id: message.chat.id, text: question2, reply_markup: answers2)
+      bot.api.send_message(chat_id: message.chat.id, text: question2, reply_markup: answers_month)
       state = 3
     elsif(state == 3)
       bot.api.send_message(chat_id: message.chat.id, text: goodbye)
