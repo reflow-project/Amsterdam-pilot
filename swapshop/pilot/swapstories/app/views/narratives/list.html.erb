@@ -1,10 +1,22 @@
 <div class="narrative">
-<h1> Known resources </h1>
+<h1> Tracked resources </h1>
 <table class="story">
-<% @resources.each do |resource| %>
+  <tr>
+    <th>tracking id</th>
+    <th>title</th>
+    <th>messages</th>
+    <th>created</th>
+    <th>last activity</th>
+    <th>last message received</th>
+    <th colspan=2>actions</th><tr>
+      <% @resources.sort_by{|res|res.last_activity}.reverse.each do |resource| %>
   <tr>
     <td><%= resource.tracking_id %></td>
     <td><%= resource.title %></td>
+    <td><%= resource.transcripts.count %></td>
+    <td><%= resource.created_at.to_formatted_s(:short) rescue '' %></td>
+    <td><%= resource.last_activity.to_formatted_s(:short) rescue '' %></td>
+    <td><%= "'#{resource.transcripts.last.dialog_value}' (#{resource.transcripts.last.dialog_key})" rescue '' %></td>
     <td><button onclick="location.href='/code/<%= resource.tracking_id %>'" type="button">view</button></td>
     <td><button onclick="location.href='/edit/<%= resource.tracking_id %>'" type="button">edit</button></td>
   </tr>
