@@ -19,6 +19,10 @@ class Agent < ApplicationRecord
     res.transcripts.last.created_at rescue self.updated_at 
   end
 
+  def item_count
+    Resource.where(:owner => self.id).count
+  end
+
   def last_message
     res = Resource.find(self.dialog_subject) rescue nil
     "'#{res.transcripts.last.dialog_value}' (#{res.transcripts.last.dialog_key})" rescue '' 

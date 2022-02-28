@@ -13,6 +13,7 @@
     <th>agent</th>
     <th>dialog state</th>
     <th>current subject</th>
+    <th>items owned</th>
     <th>created</th>
     <th>last activity</th>
     <th>last message received</th>
@@ -23,6 +24,7 @@
     <td><%= agent.label %> &nbsp; (<%= agent.telegram_id %>)</td>
     <td><%= agent.dialog_state %></td>
     <td><%= agent.current_tid %></td>
+    <td><%= agent.item_count %></td>
     <td><%= agent.created_at.to_formatted_s(:short) rescue '' %></td>
     <td><%= agent.last_activity.to_formatted_s(:short) rescue '' %></td>
     <td><%= agent.last_message %></td>
