@@ -1,8 +1,11 @@
 require 'dotenv/load'
+require 'telegram/bot'
+
 SKU_REGEX = %r{\ARP(?<nr>\d\d\d\d\d)\Z}
 class NarrativesController < ApplicationController
 
   http_basic_authenticate_with name: "admin", password: ENV['ROLE_PW'], except: :show
+  @@questions = JSON.parse(File.read('swapshop_en.json'))
   def show
     #1. validate code
     tracking_id = params[:id]
@@ -26,6 +29,29 @@ class NarrativesController < ApplicationController
     end
   end
 
+  def ping
+    agent= Agent.find(params[:id]) or not_found
+    
+    #1. get the definition from the json file
+    q_defs = @@questions[:ping.to_s] 
+    q_text = q_defs.first #should exist always
+    q_answers = q_defs[1..] # can be empty array
+
+    #actually send the ping through the client (do not change the state, this will happen through the message)
+    begin
+      token = ENV['TELEGRAM_TOKEN']
+      Telegram::Bot::Client.run(token) do |bot|
+        bot.api.send_message(chat_id: agent.telegram_id, text: q_text)
+        flash[:notice] = "ping sent to #{agent.label}!"
+      end
+    rescue  => e
+      flash[:error] = "ping failed: #{e}"
+    end
+
+    #3. feedback to cms
+    redirect_to action: :list
+  end
+
   def edit
     @resource= Resource.where(["tracking_id = ?", params[:id]]).first or not_found
   end
@@ -42,6 +68,7 @@ class NarrativesController < ApplicationController
 
   def list
     @resources = Resource.all
+    @agents = Agent.all
   end
 
   private

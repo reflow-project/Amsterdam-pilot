@@ -1,22 +1,52 @@
 <div class="narrative">
+
+<% flash.each do |type, msg| %>
+  <div>
+    <%= msg %>
+  </div>
+<% end %>
+
+<h1> Known agents </h1>
+
+<table class="story">
+  <tr>
+    <th>agent</th>
+    <th>dialog state</th>
+    <th>current subject</th>
+    <th>created</th>
+    <th>last activity</th>
+    <th>last message received</th>
+    <th>actions</th>
+  </tr>
+  <% @agents.each.sort_by{|agent| agent.last_activity}.reverse.each do |agent| %>
+  <tr>
+    <td><%= agent.label %> &nbsp; (<%= agent.telegram_id %>)</td>
+    <td><%= agent.dialog_state %></td>
+    <td><%= agent.current_tid %></td>
+    <td><%= agent.created_at.to_formatted_s(:short) rescue '' %></td>
+    <td><%= agent.last_activity.to_formatted_s(:short) rescue '' %></td>
+    <td><%= agent.last_message %></td>
+    <td><button onclick="location.href='/ping/<%= agent.id %>'" type="button">ping</button></td>
+  </tr>
+  <% end %>
+</table>
+
 <h1> Tracked resources </h1>
 <table class="story">
   <tr>
     <th>tracking id</th>
     <th>title</th>
     <th>messages</th>
+    <th>owner</th>
     <th>created</th>
-    <th>last activity</th>
-    <th>last message received</th>
     <th colspan=2>actions</th><tr>
       <% @resources.sort_by{|res|res.last_activity}.reverse.each do |resource| %>
   <tr>
     <td><%= resource.tracking_id %></td>
     <td><%= resource.title %></td>
     <td><%= resource.transcripts.count %></td>
+    <td><%= resource.participant %></td>
     <td><%= resource.created_at.to_formatted_s(:short) rescue '' %></td>
-    <td><%= resource.last_activity.to_formatted_s(:short) rescue '' %></td>
-    <td><%= "'#{resource.transcripts.last.dialog_value}' (#{resource.transcripts.last.dialog_key})" rescue '' %></td>
     <td><button onclick="location.href='/code/<%= resource.tracking_id %>'" type="button">view</button></td>
     <td><button onclick="location.href='/edit/<%= resource.tracking_id %>'" type="button">edit</button></td>
   </tr>

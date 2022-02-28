@@ -41,7 +41,7 @@
     "swap_origin" : ["Where did you get this item?"],
     "swap_reason" : [" Why did you choose this item?"],
     "swap_end" : ["Have fun with it! Thank you so much for sharing this information with us.  For now, that is all we need to know. IF you have any updates, regarding your garment, send us a 'hi' in this telegram conversation and we will come back to you directly! If you have any other questions, check out website https://www.the-swapshop.com/pages/reflow"],
-    "ping" : ["Hi Swapper! We haven't heard from you in a while. Do you have any nice news about your swapped item? Press SWAP when you have exchanged or loaned the item, press WEAR when you have worn the item, and press CARE when you have repaired the item. Press OTHER for other activities","SWAP","WEAR","CARE","OTHER"],
+    "ping" : ["Hi Swapper! We haven't heard from you in a while. Do you have any nice news about any of your swapped items? If so please scan the QR code in that item to strike up a new conversation, thanks!"],
     "quiz_washing_intro" : ["Hi swapper, We would like to invite you to a short quiz to increase your knowledge about clothing. Today's theme is: Washing! Are you in?", "YES", "NO"],
     "quiz_washing_odor" : ["1. How do you get odors out of your clothes sustainably?","Soaking in cleaning vinegar","A night in the freezer","Hanging in the bathroom when you take a shower","All the above answers are correct"],
     "quiz_washing_sustainable" : ["2. What is NOT a sustainable laundry choice?","Run a short wash program","Wash at a low temperature","Wear your clothes longer","Run a cotton program"],

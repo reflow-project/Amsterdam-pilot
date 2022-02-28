@@ -14,6 +14,20 @@ class Agent < ApplicationRecord
   after_find :restore_state
   after_initialize :restore_state
 
+  def last_activity
+    res = Resource.find(self.dialog_subject) rescue nil
+    res.transcripts.last.created_at rescue self.updated_at 
+  end
+
+  def last_message
+    res = Resource.find(self.dialog_subject) rescue nil
+    "'#{res.transcripts.last.dialog_value}' (#{res.transcripts.last.dialog_key})" rescue '' 
+  end
+
+  def current_tid
+    Resource.find(self.dialog_subject).tracking_id rescue nil
+  end
+
   def restore_state
     fsm.restore!(self.dialog_state.to_sym) if self.dialog_state.present?
   end
