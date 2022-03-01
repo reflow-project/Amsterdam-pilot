@@ -16,7 +16,7 @@ require 'securerandom'
 #
 # - we could think about 'using' laundry machine resources for example
 #
-simulation("Zorgschorten", Date.today, Date.today + 15) do 
+simulation("Zorgschorten", Date.today, Date.today + 7) do 
 
   unit :u_piece, "om2:one", "#"
 
@@ -56,6 +56,7 @@ simulation("Zorgschorten", Date.today, Date.today + 15) do
 
       #inventory :gown_stock, "Gown (in stock)", :gown, rand(800..1000) # in stock in the tsc
       inventory :gown_stock, "Gown (in stock)", :gown, 20 # in stock in the tsc
+      pool :gown_discarded_pool, "Gown to be recycled", :gown # gowns that failed the Quality Inspection, defaults to zero initially
   end
 
   #this agent is considered 'jit', and only deals with containers
@@ -65,6 +66,13 @@ simulation("Zorgschorten", Date.today, Date.today + 15) do
 	 	"De schakel 30, 5651 Eindhoven",
 		"CleanLease Eindhoven",
 		"Textile service provider"       
+  end
+
+  agent :a_wieland, "Wieland" do
+    location 52.51345006821827, 4.7785117343772345,
+	 	"Handelsweg 8, 1521 NH Wormerveer",
+		"Wieland Textiles",
+		"wieland.nl"
   end
   
   # every day between 5 and 10 in use gowns are put in the hamper 
@@ -119,7 +127,18 @@ simulation("Zorgschorten", Date.today, Date.today + 15) do
       unpack_container :gown_clean
       modify_batch "peformed inspection"
       pass_batch rand(0.95..1)
-      inventory_put :gown_stock 
+      inventory_put :gown_stock
+      failed_take
+      pool_put :gown_discarded_pool
+    end
+  end
+
+  event :recycle, "recycle discarded garments" do
+    schedule on_event: :e_inspect, :with_delay => rand(0..2) 
+    process do
+      as_performer :a_tsc
+      pool_take :gown_discarded_pool
+      transfer_batch :a_wieland, "to recycle"
     end
   end  
 
