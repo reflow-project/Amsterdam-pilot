@@ -231,7 +231,7 @@ class SwapBot
     parse_mode = nil
     if(agent.dialog_state == :other_share_yes.to_s || 
         agent.dialog_state == :wear_share_confirmation.to_s || 
-         agent.dialog_state == :new_confirmation)
+        agent.dialog_state == :new_confirmation.to_s)
         q_text = add_backlink(q_text, agent.dialog_subject)
         parse_mode = "HTML"
     end
