@@ -28,12 +28,18 @@
 
   <% if @resource.events.count > 0 %>
     <div class="story">
-      <b>Timeline</b>
-      <ul>
+      <div class="timeline">
         <% @resource.events.each do |event| %>
-          <li><%= event.created_at.strftime("%d %B, %Y") %>: <%= event.description %></li>
+          <div class="timeline-entry">
+            <div class="icon <%= event.icon %>"></div>
+            <div><%= event.created_at.strftime("%d-%m-%Y") %></div>
+            <div class="timeline-description"><%= event.description %></div>
+          </div>
+          <% if event != @resource.events.last %>
+            <div>➤</div>
+        <%end%>
         <% end %>
-      </ul>
+      </div>
       </p>
     </div>
   <% else %> 
