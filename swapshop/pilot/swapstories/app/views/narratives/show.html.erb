@@ -21,7 +21,7 @@
   <% if @resource.story.content.empty? == false %>
     <div class="story">
       <!--b>The story so far</b-->
-      <p class="content"><span><%= @resource.story.content %></span></p>
+      <p class="content"><span><%= sanitize @resource.story.content %></span></p>
     </div>
     <br/> 
   <% end %>
