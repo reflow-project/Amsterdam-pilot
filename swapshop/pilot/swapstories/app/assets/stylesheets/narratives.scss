@@ -51,6 +51,7 @@ a {
 }
 
 .main-image {
+    margin-top: 40px;
     vertical-align: middle;
     text-align: center;
 }
@@ -81,6 +82,12 @@ a {
     background-color: $highlight-color;
     padding: 8px;
     border-radius: 5px;
+}
+
+.content{
+    font-size: 20pt;
+    text-align: center;
+    font-style: italic;
 }
 
 table{

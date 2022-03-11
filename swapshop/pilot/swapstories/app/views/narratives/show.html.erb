@@ -11,18 +11,17 @@
     Please have a chat with our <a href="tg://resolve?domain=<%= ENV['TELEGRAM_BOT_DOMAIN'] %>&start=<%=@resource.tracking_id %>">@swapbot</a>
   </div>
 
-  <h1><%= @resource.title %></h1>
-  <p><%= @resource.description %></p>
    
-  <div class= "main-image">
-  <img src="<%= @resource.image_url %>" width="200px" />
+  <div class="main-image">
+    <img src="<%= @resource.image_url %>" width="100%" />
+    <%= @resource.description %>
   </div>
   <br/>
   
   <% if @resource.story.content.empty? == false %>
     <div class="story">
-      <b>The story so far</b>
-      <p><span class="content"><%= @resource.story.content %></span></p>
+      <!--b>The story so far</b-->
+      <p class="content"><span><%= @resource.story.content %></span></p>
     </div>
     <br/> 
   <% end %>
