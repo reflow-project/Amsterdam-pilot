@@ -31,8 +31,9 @@ $link-color: #cb97c4;
 
 body {
     background-color: $base-color;
-    padding: 0px;
-    margin: 0px;
+    max-width: 480px; 
+    margin: 0 auto !important; 
+    float: none !important; 
 }
 
 a {
