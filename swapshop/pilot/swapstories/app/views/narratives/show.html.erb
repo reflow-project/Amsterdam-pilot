@@ -26,6 +26,7 @@
     <br/> 
   <% end %>
 
+
   <% if @resource.events.count > 0 %>
     <div class="story">
       <div class="timeline">
@@ -42,6 +43,29 @@
       </div>
       </p>
     </div>
+    
+    <br/>
+    
+    <% if @resource.impact_co2_string.empty? == false %>
+      <div class="story">
+        <div class="impact-entry">
+          <div class="icon icon-cup"></div>
+          <p><span><%= @resource.impact_co2_string %></span></p>
+        </div>
+      </div>
+    <% end %>
+    
+    <br/> 
+
+    <% if @resource.impact_water_string.empty? == false %>
+      <div class="story">
+        <div class="impact-entry">
+          <div class="icon icon-wash"></div>
+          <p><span><%= @resource.impact_water_string %></span></p>
+        </div>
+      </div>
+    <% end %>
+    <br/> 
   <% else %> 
     <!-- no events yet, so the item is not registered, show the intro text -->
 <p>
@@ -56,3 +80,5 @@ This research is a collaboration between Reflow.EU, Waag and The Swapshop.
 </p> 
   <% end %>
 </div>
+
+

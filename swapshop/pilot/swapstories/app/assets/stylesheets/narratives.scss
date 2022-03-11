@@ -109,6 +109,15 @@ a {
     flex-direction: column;
 }
 
+.impact-entry
+{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    flex-direction: column;
+}
+
 .timeline-description
 {
     text-align: center;
@@ -137,6 +146,14 @@ a {
 
 .icon-swap-out {
     background-image: image-url('swap.svg');
+}
+
+.icon-wash {
+    background-image: image-url('washingmachine.svg');
+}
+
+.icon-cup {
+    background-image: image-url('coffee.svg');
 }
 
 .content{
