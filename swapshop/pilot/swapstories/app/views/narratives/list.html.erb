@@ -6,32 +6,37 @@
   </div>
 <% end %>
 
-<h1> Known agents </h1>
+<form action="/ping" method="POST" id="pingForm">
+  <h1> Known agents </h1>
 
-<table class="story">
-  <tr>
-    <th>agent</th>
-    <th>dialog state</th>
-    <th>current subject</th>
-    <th>items owned</th>
-    <th>created</th>
-    <th>last activity</th>
-    <th>last message received</th>
-    <th>actions</th>
-  </tr>
-  <% @agents.each.sort_by{|agent| agent.last_activity}.reverse.each do |agent| %>
-  <tr>
-    <td><%= agent.label %> &nbsp; (<%= agent.telegram_id %>)</td>
-    <td><%= agent.dialog_state %></td>
-    <td><%= agent.current_tid %></td>
-    <td><%= agent.item_count %></td>
-    <td><%= agent.created_at.to_formatted_s(:short) rescue '' %></td>
-    <td><%= agent.last_activity.to_formatted_s(:short) rescue '' %></td>
-    <td><%= agent.last_message %></td>
-    <td><button onclick="location.href='/ping/<%= agent.id %>'" type="button">ping</button></td>
-  </tr>
-  <% end %>
-</table>
+  <table class="story">
+    <tr>
+      <th>agent</th>
+      <th>dialog state</th>
+      <th>current subject</th>
+      <th>items owned</th>
+      <th>created</th>
+      <th>last activity</th>
+      <th>last message received</th>
+      <th>Ping</th>
+    </tr>
+    <% @agents.each.sort_by{|agent| agent.last_activity}.reverse.each do |agent| %>
+      <tr>
+        <td><%= agent.label %> &nbsp; (<%= agent.telegram_id %>)</td>
+        <td><%= agent.dialog_state %></td>
+        <td><%= agent.current_tid %></td>
+        <td><%= agent.item_count %></td>
+        <td><%= agent.created_at.to_formatted_s(:short) rescue '' %></td>
+        <td><%= agent.last_activity.to_formatted_s(:short) rescue '' %></td>
+        <td><%= agent.last_message %></td>
+        <td><input type="radio" id="javascript" name="recipient" value="<%= agent.id %>"></td>
+      </tr>
+    <% end %>
+  </table>
+  <br>
+  <textarea name="message" rows="4" cols="50" form="pingForm">Hi Swapper! We haven't heard from you in a while. Do you have any nice news about any of your swapped items? If so please scan the QR code in that item to strike up a new conversation, thanks!</textarea>
+  <input type="submit" value="Ping"> 
+</form>
 
 <h1> Tracked resources </h1>
 <table class="story">
