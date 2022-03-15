@@ -18,6 +18,7 @@
       <th>created</th>
       <th>last activity</th>
       <th>last message received</th>
+      <th>last ping sent</th>
       <th>Ping</th>
     </tr>
     <% @agents.each.sort_by{|agent| agent.last_activity}.reverse.each do |agent| %>
@@ -26,9 +27,10 @@
         <td><%= agent.dialog_state %></td>
         <td><%= agent.current_tid %></td>
         <td><%= agent.item_count %></td>
-        <td><%= agent.created_at.to_formatted_s(:short) rescue '' %></td>
-        <td><%= agent.last_activity.to_formatted_s(:short) rescue '' %></td>
+        <td><%= agent.created_at.in_time_zone("CET").to_formatted_s(:short) rescue '' %></td>
+        <td><%= agent.last_activity.in_time_zone("CET").to_formatted_s(:short) rescue '' %></td>
         <td><%= agent.last_message %></td>
+        <td><%= agent.ping_at.in_time_zone("CET").to_formatted_s(:short) %></td>
         <td><input type="radio" id="javascript" name="recipient" value="<%= agent.id %>"></td>
       </tr>
     <% end %>

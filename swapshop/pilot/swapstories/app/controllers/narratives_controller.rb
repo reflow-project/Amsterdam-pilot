@@ -45,6 +45,8 @@ class NarrativesController < ApplicationController
         token = ENV['TELEGRAM_TOKEN']
         Telegram::Bot::Client.run(token) do |bot|
           bot.api.send_message(chat_id: agent.telegram_id, text: message)
+          agent.ping_at = DateTime.now
+          agent.save!
           flash[:notice] = "ping sent to #{agent.label}!"
         end
       rescue  => e
