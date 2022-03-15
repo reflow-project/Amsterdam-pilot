@@ -30,7 +30,7 @@
         <td><%= agent.created_at.in_time_zone("CET").to_formatted_s(:short) rescue '' %></td>
         <td><%= agent.last_activity.in_time_zone("CET").to_formatted_s(:short) rescue '' %></td>
         <td><%= agent.last_message %></td>
-        <td><%= agent.ping_at.in_time_zone("CET").to_formatted_s(:short) %></td>
+        <td><%= agent.ping_at.in_time_zone("CET").to_formatted_s(:short) rescue '' %></td>
         <td><input type="radio" id="javascript" name="recipient" value="<%= agent.id %>"></td>
       </tr>
     <% end %>
