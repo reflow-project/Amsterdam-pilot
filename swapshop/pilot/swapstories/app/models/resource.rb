@@ -54,7 +54,7 @@ class Resource < ApplicationRecord
       co2_impact_kg = co2_kg[garment_type] ||= 0 
       co2_impact_cups = co2_cups[garment_type] ||= 0 
       if(co2_impact_kg > 0 && co2_impact_cups > 0 && nr_of_swaps > 0)
-        return "You saved the equivalent of #{nr_of_swaps * co2_impact_cups} cups of coffee! (#{nr_of_swaps * co2_impact_kg} kg of co2) by swapping this item"       
+        return "You saved the equivalent of #{nr_of_swaps * co2_impact_cups} cups of coffee! (#{nr_of_swaps * co2_impact_kg} kg of CO2) by swapping this item"       
       end
     end
 
@@ -108,7 +108,7 @@ class Resource < ApplicationRecord
       water_impact_kg = water_kg[garment_type] ||= 0 
       water_impact_cups = water_cups[garment_type] ||= 0 
       if(water_impact_kg > 0 && water_impact_cups > 0 && nr_of_swaps > 0)
-        return "You saved the equivalent of #{nr_of_swaps * water_impact_cups} laundry cycles (#{nr_of_swaps * water_impact_kg} liters of water) by swapping this item"       
+        return "You saved the equivalent of #{nr_of_swaps * water_impact_cups} laundry cycles (#{(nr_of_swaps * water_impact_kg * 1000).to_i} liters of water) by swapping this item"       
       end
     end
 
