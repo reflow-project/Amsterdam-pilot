@@ -11,32 +11,61 @@
     Please have a chat with our <a href="tg://resolve?domain=<%= ENV['TELEGRAM_BOT_DOMAIN'] %>&start=<%=@resource.tracking_id %>">@swapbot</a>
   </div>
 
-  <h1><%= @resource.title %></h1>
-  <p><%= @resource.description %></p>
    
-  <div class= "main-image">
-  <img src="<%= @resource.image_url %>" width="200px" />
+  <div class="main-image">
+    <img src="<%= @resource.image_url %>" width="100%" />
+    <%= @resource.description %>
   </div>
   <br/>
   
   <% if @resource.story.content.empty? == false %>
     <div class="story">
-      <b>The story so far</b>
-      <p><span class="content"><%= @resource.story.content %></span></p>
+      <!--b>The story so far</b-->
+      <p class="content"><span><%= sanitize @resource.story.content %></span></p>
     </div>
     <br/> 
   <% end %>
 
+
   <% if @resource.events.count > 0 %>
     <div class="story">
-      <b>Timeline</b>
-      <ul>
+      <div class="timeline">
         <% @resource.events.each do |event| %>
-          <li><%= event.created_at.strftime("%d %B, %Y") %>: <%= event.description %></li>
+          <div class="timeline-entry">
+            <div class="icon <%= event.icon %>"></div>
+            <div><%= event.created_at.strftime("%d-%m-%Y") %></div>
+            <div class="timeline-description"><%= event.description %></div>
+          </div>
+          <% if event != @resource.events.last %>
+            <div>➤</div>
+        <%end%>
         <% end %>
-      </ul>
+      </div>
       </p>
     </div>
+    
+    <br/>
+    
+    <% if @resource.impact_co2_string.empty? == false %>
+      <div class="story">
+        <div class="impact-entry">
+          <div class="icon icon-cup"></div>
+          <p><span><%= @resource.impact_co2_string %></span></p>
+        </div>
+      </div>
+    <% end %>
+    
+    <br/> 
+
+    <% if @resource.impact_water_string.empty? == false %>
+      <div class="story">
+        <div class="impact-entry">
+          <div class="icon icon-wash"></div>
+          <p><span><%= @resource.impact_water_string %></span></p>
+        </div>
+      </div>
+    <% end %>
+    <br/> 
   <% else %> 
     <!-- no events yet, so the item is not registered, show the intro text -->
 <p>
@@ -51,3 +80,5 @@ This research is a collaboration between Reflow.EU, Waag and The Swapshop.
 </p> 
   <% end %>
 </div>
+
+

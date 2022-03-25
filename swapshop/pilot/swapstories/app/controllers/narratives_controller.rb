@@ -30,22 +30,30 @@ class NarrativesController < ApplicationController
   end
 
   def ping
-    agent= Agent.find(params[:id]) or not_found
-    
+    if(params[:recipient] != nil)
+      agent = Agent.find(params[:recipient]) or not_found
+      message = params[:message]
+    end
     #1. get the definition from the json file
-    q_defs = @@questions[:ping.to_s] 
-    q_text = q_defs.first #should exist always
-    q_answers = q_defs[1..] # can be empty array
-
+#     q_defs = @@questions[:ping.to_s] 
+#     q_text = q_defs.first #should exist always
+#     q_answers = q_defs[1..] # can be empty array
+# 
     #actually send the ping through the client (do not change the state, this will happen through the message)
-    begin
-      token = ENV['TELEGRAM_TOKEN']
-      Telegram::Bot::Client.run(token) do |bot|
-        bot.api.send_message(chat_id: agent.telegram_id, text: q_text)
-        flash[:notice] = "ping sent to #{agent.label}!"
+    if(agent != nil)
+      begin
+        token = ENV['TELEGRAM_TOKEN']
+        Telegram::Bot::Client.run(token) do |bot|
+          bot.api.send_message(chat_id: agent.telegram_id, text: message)
+          agent.ping_at = DateTime.now
+          agent.save!
+          flash[:notice] = "ping sent to #{agent.label}!"
+        end
+      rescue  => e
+        flash[:error] = "ping failed: #{e}"
       end
-    rescue  => e
-      flash[:error] = "ping failed: #{e}"
+    else
+        flash[:error] = "no recipient selected"
     end
 
     #3. feedback to cms

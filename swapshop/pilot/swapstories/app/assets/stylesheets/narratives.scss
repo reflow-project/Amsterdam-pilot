@@ -31,8 +31,9 @@ $link-color: #cb97c4;
 
 body {
     background-color: $base-color;
-    padding: 0px;
-    margin: 0px;
+    max-width: 480px; 
+    margin: 0 auto !important; 
+    float: none !important; 
 }
 
 a {
@@ -51,6 +52,7 @@ a {
 }
 
 .main-image {
+    margin-top: 40px;
     vertical-align: middle;
     text-align: center;
 }
@@ -81,6 +83,83 @@ a {
     background-color: $highlight-color;
     padding: 8px;
     border-radius: 5px;
+}
+
+.icon {
+    width: 50px;
+    height: 50px;
+    background-size: 50px 50px;
+    background-repeat: no-repeat;
+}
+
+.timeline
+{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.timeline-entry
+{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    flex-direction: column;
+}
+
+.impact-entry
+{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    flex-direction: column;
+}
+
+.timeline-description
+{
+    text-align: center;
+    max-width: 100px;
+}
+
+.icon-swap {
+    background-image: image-url('swap.svg');
+}
+
+.icon-adjust {
+    background-image: image-url('adjust.svg');
+}
+
+.icon-repair {
+    background-image: image-url('repair.svg');
+}
+
+.icon-use {
+    background-image: image-url('use.svg');
+}
+
+.icon-swap-in {
+    background-image: image-url('swap.svg');
+}
+
+.icon-swap-out {
+    background-image: image-url('swap.svg');
+}
+
+.icon-wash {
+    background-image: image-url('washingmachine.svg');
+}
+
+.icon-cup {
+    background-image: image-url('coffee.svg');
+}
+
+.content{
+    font-size: 20pt;
+    text-align: center;
+    font-style: italic;
 }
 
 table{

@@ -106,8 +106,7 @@ class Agent < ApplicationRecord
         :new_color => :new_size,
         :new_size => :new_brand,
         :new_brand => :new_material,
-        :new_material => :new_extra,
-        :new_extra => :new_summary,
+        :new_material => :new_summary,
         :new_summary => :new_memory, #yes equals next in this case
         :new_memory => :new_location,
         :new_location => :new_date_year,

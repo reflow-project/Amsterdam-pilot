@@ -18,21 +18,44 @@ class Event < ApplicationRecord
       event_type = read_attribute("event_type")
       case event_type 
         when SwapEvent::BORN # register by shop (produce or raise)
-          "Registered in inventory"
+          "Registered"
         when SwapEvent::SWAP_IN #swap from participant to shop
-          "Swap in"
+          "Swapped in"
         when SwapEvent::SWAP_OUT #swap from shop to participant
-          "Swap out"
+          "Swapped out"
         when SwapEvent::SWAP #swap between participants
-          "Swap"
+          "Swapped"
         when SwapEvent::USE # use by participant
-          "Use"
+          "Wear"
         when SwapEvent::REPAIR # repair by participant / shop
           "Repair"
         when SwapEvent::ADJUST # adjustment made by participant / shop
-          "Adjusted"
+          "Adjustment"
         else
           ""
         end 
     end
+
+  def icon 
+      event_type = read_attribute("event_type")
+      case event_type 
+        when SwapEvent::BORN # register by shop (produce or raise)
+          "icon-swap"
+        when SwapEvent::SWAP_IN #swap from participant to shop
+          "icon-swap"
+        when SwapEvent::SWAP_OUT #swap from shop to participant
+          "icon-swap"
+        when SwapEvent::SWAP #swap between participants
+          "icon-swap"
+        when SwapEvent::USE # use by participant
+          "icon-use"
+        when SwapEvent::REPAIR # repair by participant / shop
+          "icon-repair"
+        when SwapEvent::ADJUST # adjustment made by participant / shop
+          "icon-adjust"
+        else
+          ""
+        end 
+    end
+
 end

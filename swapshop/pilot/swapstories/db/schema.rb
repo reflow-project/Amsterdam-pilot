@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_11_19_094027) do
+ActiveRecord::Schema.define(version: 2022_03_15_103645) do
 
   create_table "agents", force: :cascade do |t|
     t.string "label"
@@ -22,6 +22,7 @@ ActiveRecord::Schema.define(version: 2021_11_19_094027) do
     t.string "role"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.datetime "ping_at"
   end
 
   create_table "events", force: :cascade do |t|
