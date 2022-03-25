@@ -40,14 +40,14 @@ graph("Maison_et_Objet") {
   
     agent :a_dimensionuse, "Dimension-use"
   
-    resource :r_label, "Label"
+    resource :r_resrecord, "Resource record"
 
-    event :e_producelab, "Produce"
+    event :e_produceresrecord, "Produce"
     
-    role :e_producelab, :a_dimensionuse, "provider"
-    role :e_producelab, :a_dimensionuse, "receiver"
+    role :e_produceresrecord, :a_dimensionuse, "provider"
+    role :e_produceresrecord, :a_dimensionuse, "receiver"
     
-    flow [:r_woodscrcnt,:e_producelab,:r_label]
+    flow [:r_woodscrcnt,:e_produceresrecord,:r_resrecord]
   end
 
   sub_graph("New Objects") do
