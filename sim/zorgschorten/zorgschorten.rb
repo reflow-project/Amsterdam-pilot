@@ -68,13 +68,20 @@ simulation("Zorgschorten", Date.today, Date.today + 7) do
 		"Textile service provider"       
   end
 
-  agent :a_wieland, "Wieland" do
+  agent :a_sorter, "Wieland" do
     location 52.51345006821827, 4.7785117343772345,
 	 	"Handelsweg 8, 1521 NH Wormerveer",
 		"Wieland Textiles",
 		"wieland.nl"
   end
   
+  agent :a_unraveler, "Denimtex" do
+    location 52.2141945, 6.8415574
+	 	"Josink Kolkweg 19, 7545 PR Enschede",
+		"Denimtex",
+		"denimtex.nl"
+  end
+
   # every day between 5 and 10 in use gowns are put in the hamper 
   event :e_out_use, "Use (Discard)" do 
     schedule cron: 1 
@@ -133,12 +140,12 @@ simulation("Zorgschorten", Date.today, Date.today + 7) do
     end
   end
 
-  event :recycle, "recycle discarded garments" do
+  event :e_recycle, "recycle discarded garments" do
     schedule on_event: :e_inspect, :with_delay => rand(0..2) 
     process do
       as_performer :a_tsc
       pool_take :gown_discarded_pool
-      transfer_batch :a_wieland, "to recycle"
+      transfer_batch :a_sorter, "to recycle"
     end
   end  
 
